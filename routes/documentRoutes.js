@@ -4,6 +4,7 @@ const {
     fnGetResultDocCondition,
     fnGetResultQR, 
     fnGetResultEndQR ,
+    fnGetResultOtherQR,
     fnGetResultConQR, 
     fnGetResultASM, 
     fnGetResultConASM,
@@ -26,6 +27,10 @@ router.post("/fnGetResultDoc", fnGetResultDoc);
 router.post("/fnGetResultDocCondition", fnGetResultDocCondition);
 router.post("/fnGetResultQR", fnGetResultQR);
 router.post("/fnGetResultEndQR", fnGetResultEndQR);
+router.post("/fnGetResultEndQR", fnGetResultEndQR);
+
+router.post("/fnGetResultOtherQR", fnGetResultOtherQR);
+
 router.post("/fnGetResultConQR", fnGetResultConQR);
 router.post("/fnGetResultASM", fnGetResultASM);
 router.post("/fnGetResultConASM", fnGetResultConASM);

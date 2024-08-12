@@ -3,6 +3,10 @@ const {
     fnGetResultDocConditionSQL, 
     fnGetResultQRSQL, 
     fnGetResultEndQRSQL, 
+
+    fnGetResultOtherOPSQL,
+    fnGetResultOtherOPSubSQL,
+
     fnGetResultConQRSQL, 
     fnGetResultASMSQL, 
     fnGetResultConASMSQL, 
@@ -78,7 +82,6 @@ const fnGetResultDocCondition = async (req, res) => {
       year,
       status
     };
-    console.log(data)
   
     if (!sideId || !year) {
       res
@@ -134,6 +137,9 @@ const fnGetResultQR = async (req, res) => {
     try {
     console.log("/api/documents/fnGetResultQR");
       const resultQR = await fnGetResultQRSQL(data);
+        if (resultQR === null) {
+            return res.status(200).json({ result: [] });
+        }
         
         if (resultQR && resultQR.length > 0) {
           const result = resultQR.map(resSQL => ({
@@ -145,7 +151,7 @@ const fnGetResultQR = async (req, res) => {
               descResultQR: resSQL.descResultQR,
               UserID: resSQL.UserID
             }));
-          res.status(200).json(result);
+            res.status(200).json({ result: result });
       } else {
         res.status(404).json({ 
           message: "Data not found",
@@ -157,11 +163,12 @@ const fnGetResultQR = async (req, res) => {
 };
 
 const fnGetResultEndQR = async (req, res) => {
-    const { userId, sideId } = req.body;
+    const { userId, sideId, otherId } = req.body;
 
     const data = {
         userId,
-        sideId
+        sideId,
+        otherId
     };
 
     if (!userId || !sideId) {
@@ -174,15 +181,95 @@ const fnGetResultEndQR = async (req, res) => {
     try {
         console.log("/api/documents/fnGetResultEndQR");
         const resultEndQR = await fnGetResultEndQRSQL(data);
+
+        if (resultEndQR === null) {
+            return res.status(200).json({ result: [] });
+        }
         
         if (resultEndQR && resultEndQR.length > 0) {
             const result = resultEndQR.map(resSQL => ({
                 id: resSQL.id,
+                headID: resSQL.head_id,
                 radio: resSQL.radio,
                 descResultEndQR: resSQL.descResultEndQR,
                 UserID: resSQL.UserID
             }));
-            res.status(200).json(result);
+            res.status(200).json({ result: result });
+        } else {
+        res.status(404).json({ 
+            message: "Data not found",
+        });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message, status: 'error' });
+    }
+};
+
+const fnGetResultOtherQR = async (req, res) => {
+    const { userId, sideId } = req.body;
+
+    if (!userId || !sideId) {
+        res
+        .status(400)
+        .json({ error: "userId or sideId fields cannot be empty!" });
+        return;
+    }
+
+    const data = {
+        userId,
+        sideId
+    };
+
+    const dataFix = [
+        { id: 101 , sum_id: 401, value:  '', text: "การบริการ สวัสดิการ และสิทธิกำลังพล" },
+        { id: 102 , sum_id: 402, value: '1', text: "มีการควบคุมเพียงพอ"},
+        { id: 103 , sum_id: 403, value: '0', text: "กรณีไม่เพียงพอมีแนวทางหรือวิธีการปรับปรุงการควบคุมภายในให้ดีขึ้น ดังนี้"}
+    ]
+
+    try {
+        console.log("/api/documents/fnGetResultOtherQR");
+
+        const resultOtherOP = await fnGetResultOtherOPSQL(data);
+
+        if (resultOtherOP === null) {
+            return res.status(200).json({ result: [] });
+        }
+        
+        if (resultOtherOP && resultOtherOP.length > 0) {
+            const resultMain = resultOtherOP.map(resSQL => ({
+                id: resSQL.id,
+                id_control: resSQL.id_control,
+                head_id: resSQL.head_id,
+                mainControl_id: resSQL.mainControl_id,
+                text: resSQL.text,
+                objectName:resSQL.objectName,
+                main_Obj: resSQL.main_Obj,
+                UserID: resSQL.UserID
+            }));
+
+            const resultOtherSubOP = await fnGetResultOtherOPSubSQL(data);
+            if (resultOtherSubOP === null) {
+                return res.status(200).json({ result: [] });
+            }
+
+            if (resultOtherSubOP && resultOtherSubOP.length > 0) {
+                const resultSub = resultOtherSubOP.map(resSQL => ({
+                    id: resSQL.id,
+                    id_control: resSQL.resultNo,
+                    head_id: resSQL.head_id,
+                    checkbox: resSQL.checkbox,
+                    text: resSQL.text,
+                    is_subcontrol: resSQL.is_subcontrol,
+                    ischeckbox: resSQL.ischeckbox,
+                    descResultQR: resSQL.descResultQR,
+                    UserID: resSQL.UserID
+                }));
+
+                const result = resultMain.concat(resultSub, dataFix);
+                res.status(200).json({ result: result });
+            } else {
+                res.status(200).json({ result: resultMain });
+            }
         } else {
         res.status(404).json({ 
             message: "Data not found",
@@ -211,6 +298,10 @@ const fnGetResultConQR = async (req, res) => {
     try {
         console.log("/api/documents/fnGetResultConQR");
         const resultConQR = await fnGetResultConQRSQL(data);
+
+        if (resultConQR === null) {
+            return res.status(200).json({ result: [] });
+        }
         
         if (resultConQR && resultConQR.length > 0) {
             const result = resultConQR.map(resSQL => ({
@@ -222,7 +313,7 @@ const fnGetResultConQR = async (req, res) => {
                 dateAsessor: resSQL.dateAsessor,
                 UserID: resSQL.UserID
             }));
-            res.status(200).json(result);
+            res.status(200).json({ result: result });
         } else {
         res.status(404).json({ 
             message: "Data not found",
@@ -251,6 +342,10 @@ const fnGetResultASM = async (req, res) => {
     try {
         console.log("/api/documents/fnGetResultASM");
         const resultASM = await fnGetResultASMSQL(data);
+
+        if (resultASM === null) {
+            return res.status(200).json({ result: [] });
+        }
         
         if (resultASM && resultASM.length > 0) {
             const result = resultASM.map(resSQL => ({
@@ -258,7 +353,7 @@ const fnGetResultASM = async (req, res) => {
                 descResultASM: resSQL.descResultASM,
                 UserID: resSQL.UserID
             }));
-            res.status(200).json(result);
+            res.status(200).json({ result: result });
         } else {
         res.status(404).json({ 
             message: "Data not found",
@@ -287,7 +382,11 @@ const fnGetResultConASM = async (req, res) => {
     try {
         console.log("/api/documents/fnGetResultConASM");
         const resultConASM = await fnGetResultConASMSQL(data);
-        
+
+        if (resultConASM === null) {
+            return res.status(200).json({ result: [] });
+        }
+
         if (resultConASM && resultConASM.length > 0) {
             const result = resultConASM.map(resSQL => ({
                 id: resSQL.id,
@@ -299,7 +398,7 @@ const fnGetResultConASM = async (req, res) => {
                 dateAsessor: resSQL.dateAsessor,
                 UserID: resSQL.UserID
             }));
-            res.status(200).json(result);
+            res.status(200).json({ result: result });
         } else {
         res.status(404).json({ 
             message: "Data not found",
@@ -716,6 +815,7 @@ module.exports = {
     fnGetResultDocCondition,
     fnGetResultQR,
     fnGetResultEndQR,
+    fnGetResultOtherQR,
     fnGetResultConQR,
     fnGetResultASM,
     fnGetResultConASM,

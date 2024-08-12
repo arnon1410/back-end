@@ -123,14 +123,58 @@ const fnGetResultQRSQL = (record) => {
 };
 
 const fnGetResultEndQRSQL = (record) => {
+
+  var conditionOther = ''
+  if (record.otherId) {
+    conditionOther = `AND a.OtherID = ${record.otherId}`
+  }
   return new Promise((resolve, reject) => {
-    const query = `SELECT a.id , a.radio, a.descResultEndQR, b.UserID
+    const query = `SELECT a.id , a.head_id, a.radio, a.descResultEndQR, b.UserID
       FROM Result_End_QR as a 
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
       WHERE b.UserID = ${record.userId} AND b.OPSideID = ${record.sideId}
+      ${conditionOther}
       ORDER BY a.id
     `;
     pool.query(query, [record], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results.length ? results : null);
+      }
+    });
+  });
+};
+
+const fnGetResultOtherOPSQL = (record) => {
+  return new Promise((resolve, reject) => {
+    const query = `SELECT a.id , a.id_control, a.head_id, a.mainControl_id, a.text,
+      'วัตถุประสงค์ของการควบคุม' as main_Obj, objectName, b.UserID
+      FROM OTHER_OP as a
+      INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id 
+      WHERE b.UserID = ? AND b.OPSideID = ?
+      ORDER BY a.id`;
+    pool.query(query, [record.userId, record.sideId], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results.length ? results : null);
+      }
+    });
+  });
+};
+
+const fnGetResultOtherOPSubSQL = (record) => {
+  return new Promise((resolve, reject) => {
+    const query = `SELECT a.id , c.resultNo, a.text, 0 as is_subcontrol, 1 as ischeckbox, c.checkbox, c.descResultQR
+      FROM OTHER_S_OP as a
+      INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
+      INNER JOIN Result_QR as c ON a.ResultQRID = c.id
+      INNER JOIN OTHER_OP as d ON a.OtherID = d.id
+      WHERE c.OtherID IS NOT NULL 
+      AND b.UserID = ? AND b.OPSideID = ?
+      ORDER BY a.id`;
+    pool.query(query, [record.userId, record.sideId], (err, results) => {
       if (err) {
         reject(err);
       } else {
@@ -498,6 +542,10 @@ module.exports = {
   fnGetResultDocConditionSQL,
   fnGetResultQRSQL,
   fnGetResultEndQRSQL,
+
+  fnGetResultOtherOPSQL,
+  fnGetResultOtherOPSubSQL,
+
   fnGetResultConQRSQL,
   fnGetResultASMSQL,
   fnGetResultConASMSQL,
