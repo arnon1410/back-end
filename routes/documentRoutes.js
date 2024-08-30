@@ -17,7 +17,8 @@ const {
     fnGetResultConPK5,
     fnGetResultHighRisk,
     fnGetResultPK5Fix,
-    fnGetResultConPKF5
+    fnGetResultConPKF5,
+    fnUpdateCommentForAdmin
 
 } = require("../controllers/documentControllers");
 const router = express.Router();
@@ -44,6 +45,9 @@ router.post("/fnGetResultHighRisk", fnGetResultHighRisk)
 router.post("/fnGetResultPK5Fix", fnGetResultPK5Fix);
 router.post("/fnGetResultConPK5", fnGetResultConPK5);
 router.post("/fnGetResultConPKF5", fnGetResultConPKF5);
+
+
+router.post("/fnUpdateCommentForAdmin", fnUpdateCommentForAdmin);
 
 
 module.exports = router;

@@ -19,16 +19,63 @@ const {
     fnGetResultHighRiskSQL,
     fnGetResultConPK5SQL,
     fnGetResultPK5FixSQL,
-    fnGetResultConPKF5SQL
+    fnGetResultConPKF5SQL,
+
+    fnUpdateCommentForAdminSQL,
+    fnUpdateStatusDocAdminSQL
     
 } = require("../utils/sqlFunctions");
 
+const fnUpdateCommentForAdmin = async (req, res) => {
+    const { idUserDoc, username, comment, status } = req.body;
+    
+    const data = {
+      idUserDoc,
+      username,
+      comment,
+      status
+    };
+  
+    if (!idUserDoc || !username) {
+      res
+        .status(400)
+        .json({ error: "idUserDoc or username fields cannot be empty!" });
+      return;
+    }
+  
+    try {
+        let resultUpdate;
+        if (status) {
+            if (status === 'incomplete') {
+                console.log("/api/documents/fnUpdateCommentForAdmin");
+                resultUpdate = await fnUpdateCommentForAdminSQL(data);
+            } else {
+                console.log("/api/documents/fnUpdateStatusDocAdmin");
+                resultUpdate = await fnUpdateStatusDocAdminSQL(data);
+
+            }
+        } else {
+            console.log("/api/documents/fnUpdateCommentForAdmin");
+            resultUpdate = await fnUpdateCommentForAdminSQL(data);
+        }
+        
+        if (resultUpdate) {
+            res.status(200).json({ result: 'success' });
+        } else {
+            res.status(404).json({ message: "Data not found" });
+        }
+    } catch (error) {
+      res.status(500).json({ error: error.message, status: 'error' });
+    }
+  };
+
 const fnGetResultDoc = async (req, res) => {
-  const { userId, sideId } = req.body;
+  const { userId, sideId, isAdmin } = req.body;
   
   const data = {
     userId,
-    sideId
+    sideId,
+    isAdmin
   };
 
   if (!userId || !sideId) {
@@ -105,6 +152,10 @@ const fnGetResultDocCondition = async (req, res) => {
               signPath: resDoc.signPath,
               updatedAt: resDoc.updatedAt,
               shortName: resDoc.shortName,
+              userID: resDoc.UserID,
+              opStatusID: resDoc.OPStatusID,
+              opFormID: resDoc.OPFormID,
+              opSideID: resDoc.OPSideID,
               opFormName: resDoc.OPFormName,
               opStatusName: resDoc.OPStatusName
             }));
@@ -136,6 +187,7 @@ const fnGetResultQR = async (req, res) => {
   
     try {
     console.log("/api/documents/fnGetResultQR");
+    console.log(data)
       const resultQR = await fnGetResultQRSQL(data);
         if (resultQR === null) {
             return res.status(200).json({ result: [] });
@@ -188,7 +240,7 @@ const fnGetResultEndQR = async (req, res) => {
         
         if (resultEndQR && resultEndQR.length > 0) {
             const result = resultEndQR.map(resSQL => ({
-                id: resSQL.id,
+                idEndQR: resSQL.id,
                 headID: resSQL.head_id,
                 radio: resSQL.radio,
                 descResultEndQR: resSQL.descResultEndQR,
@@ -237,7 +289,7 @@ const fnGetResultOtherQR = async (req, res) => {
         
         if (resultOtherOP && resultOtherOP.length > 0) {
             const resultMain = resultOtherOP.map(resSQL => ({
-                id: resSQL.id,
+                id: resSQL.id, // from table Result QR
                 id_control: resSQL.id_control,
                 head_id: resSQL.head_id,
                 mainControl_id: resSQL.mainControl_id,
@@ -427,10 +479,15 @@ const fnGetResultPFMEV = async (req, res) => {
     try {
         console.log("/api/documents/fnGetResultPFMEV");
         const resultPFMEV = await fnGetResultPFMEVSQL(data);
+
+        if (resultPFMEV === null) {
+            return res.status(200).json({ result: [] });
+        }
     
         if (resultPFMEV && resultPFMEV.length > 0) {
             const result = resultPFMEV.map(resSQL => ({
                 id: resSQL.id,
+                idQR: resSQL.ResultQRID,
                 headRisk: resSQL.headRisk,
                 objRisk: resSQL.objRisk,
                 risking: resSQL.risking,
@@ -470,6 +527,10 @@ const fnGetResultConPFMEV = async (req, res) => {
     try {
         console.log("/api/documents/fnGetResultConPFMEV");
         const resultConPFMEV = await fnGetResultConPFMEVSQL(data);
+
+        if (resultConPFMEV === null) {
+            return res.status(200).json({ result: [] });
+        }
         
         if (resultConPFMEV && resultConPFMEV.length > 0) {
             const result = resultConPFMEV.map(resSQL => ({
@@ -811,6 +872,7 @@ const fnGetResultConPKF5 = async (req, res) => {
 };
 
 module.exports = {
+    fnUpdateCommentForAdmin,
     fnGetResultDoc,
     fnGetResultDocCondition,
     fnGetResultQR,

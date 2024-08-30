@@ -2,7 +2,7 @@ const {
     fnCheckFileDocPDFSQL,
     fnUpdateFileDocPDFSQL,
     fnSetFileDocPDFSQL
-} = require("../utils/sqlFunctions");
+} = require("../utils/sqlQuestion");
 
 const fnGetFileDocPDF = async (req, res) => {
     const { idQR, username } = req.body;
@@ -27,27 +27,26 @@ const fnGetFileDocPDF = async (req, res) => {
         res.status(500).json({ error: error.message, status: 'error' });
     }
 };
-  
-  
-  const fnDownloadFileDocPDF = async (req, res) => {
-    const { idQR } = req.query;
-    
-    try {
-      const result = await fnCheckFileDocPDFSQL({ idQR });
-      console.log(result.fileData)
-      if (result) {
-        const pdfBuffer = Buffer.from(result.fileData, 'base64');
-  
-        res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(result.fileName)}"`);
-        res.setHeader('Content-Type', 'application/pdf');
-        res.send(pdfBuffer);
-      } else {
-        res.status(404).json({ message: "ไม่พบไฟล์เอกสาร" });
-      }
-    } catch (error) {
-      res.status(500).json({ error: error.message, status: 'error' });
+
+const fnDownloadFileDocPDF = async (req, res) => {
+const { idQR } = req.query;
+
+try {
+    const result = await fnCheckFileDocPDFSQL({ idQR });
+    console.log(result.fileData)
+    if (result) {
+    const pdfBuffer = Buffer.from(result.fileData, 'base64');
+
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(result.fileName)}"`);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.send(pdfBuffer);
+    } else {
+    res.status(404).json({ message: "ไม่พบไฟล์เอกสาร" });
     }
-  };
+} catch (error) {
+    res.status(500).json({ error: error.message, status: 'error' });
+}
+};
 
 const fnSetFileDocPDF = async (req, res) => {  
     const { idQR, username, image, fileName } = req.body;
