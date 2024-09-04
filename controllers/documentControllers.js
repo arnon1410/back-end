@@ -498,7 +498,7 @@ const fnGetResultPFMEV = async (req, res) => {
                 improvementControl: resSQL.improvementControl,
                 UserID: resSQL.UserID
             }));
-            res.status(200).json(result);
+            res.status(200).json({ result: result });
         } else {
         res.status(404).json({ 
             message: "Data not found",
@@ -542,7 +542,7 @@ const fnGetResultConPFMEV = async (req, res) => {
                 dateAsessor: resSQL.dateAsessor,
                 UserID: resSQL.UserID
             }));
-            res.status(200).json(result);
+            res.status(200).json({ result: result });
         } else {
         res.status(404).json({ 
             message: "Data not found",
@@ -572,6 +572,10 @@ const fnGetResultChanceRisk = async (req, res) => {
     try {
         console.log("/api/documents/fnGetResultChanceRisk");
         const resultChanceRisk = await fnGetResultChanceRiskSQL(data);
+
+        if (resultChanceRisk === null) {
+            return res.status(200).json({ result: [] });
+        }
         
         if (resultChanceRisk && resultChanceRisk.length > 0) {
             const result = resultChanceRisk.map(resSQL => ({
@@ -584,7 +588,7 @@ const fnGetResultChanceRisk = async (req, res) => {
                 chanceRiskScore: resSQL.chanceRiskScore,
                 UserID: resSQL.UserID
             }));
-            res.status(200).json(result);
+            res.status(200).json({ result: result });
         } else {
         res.status(404).json({ 
             message: "Data not found",
@@ -614,6 +618,10 @@ const fnGetResultEffectRisk = async (req, res) => {
     try {
         console.log("/api/documents/fnGetResultEffectRisk");
         const resultEffectRisk = await fnGetResultEffectRiskSQL(data);
+
+        if (resultEffectRisk === null) {
+            return res.status(200).json({ result: [] });
+        }
         
         if (resultEffectRisk && resultEffectRisk.length > 0) {
             const result = resultEffectRisk.map(resSQL => ({
@@ -626,7 +634,7 @@ const fnGetResultEffectRisk = async (req, res) => {
                 effectRiskScore: resSQL.effectRiskScore,
                 UserID: resSQL.UserID
             }));
-            res.status(200).json(result);
+            res.status(200).json({ result: result });
         } else {
         res.status(404).json({ 
             message: "Data not found",
@@ -654,6 +662,10 @@ const fnGetResultPK4 = async (req, res) => {
     try {
         console.log("/api/documents/fnGetResultPK4");
         const resultPK4 = await fnGetResultPK4SQL(data);
+
+        if (resultPK4 === null) {
+            return res.status(200).json({ result: [] });
+        }
         
         if (resultPK4 && resultPK4.length > 0) {
             const result = resultPK4.map(resSQL => ({
@@ -661,7 +673,7 @@ const fnGetResultPK4 = async (req, res) => {
                 descResultPK4: resSQL.descResultPK4,
                 UserID: resSQL.UserID
             }));
-            res.status(200).json(result);
+            res.status(200).json({ result: result });
         } else {
         res.status(404).json({ 
             message: "Data not found",
@@ -689,6 +701,10 @@ const fnGetResultConPK4 = async (req, res) => {
         console.log("/api/documents/fnGetResultConPK4");
         const resultConPK4 = await fnGetResultConPK4SQL(data);
         
+        if (resultConPK4 === null) {
+            return res.status(200).json({ result: [] });
+        }
+
         if (resultConPK4 && resultConPK4.length > 0) {
             const result = resultConPK4.map(resSQL => ({
                 id: resSQL.id,
@@ -700,7 +716,7 @@ const fnGetResultConPK4 = async (req, res) => {
                 dateAsessor: resSQL.dateAsessor,
                 UserID: resSQL.UserID
             }));
-            res.status(200).json(result);
+            res.status(200).json({ result: result });
         } else {
         res.status(404).json({ 
             message: "Data not found",
@@ -730,7 +746,7 @@ const fnGetResultHighRisk = async (req, res) => {
         console.log("/api/documents/fnGetResultHighRisk");
         const resultHighRisk = await fnGetResultHighRiskSQL(data);
         if (resultHighRisk === null) {
-            return res.status(200).json(null);
+            return res.status(200).json({ result: [] });
         }
 
         if (resultHighRisk && resultHighRisk.length > 0) {
@@ -750,7 +766,7 @@ const fnGetResultHighRisk = async (req, res) => {
                 solutionsControl: resSQL.solutionsControl,
                 UserID: resSQL.UserID
             }));
-            res.status(200).json(result);
+            res.status(200).json({ result: result });
         } else {
         res.status(404).json({ 
             message: "Data not found",
@@ -779,13 +795,17 @@ const fnGetResultPK5Fix = async (req, res) => {
         console.log("/api/documents/fnGetResultPK5Fix");
         const resultPK5Fix = await fnGetResultPK5FixSQL(data);
         
+        if (resultPK5Fix === null) {
+            return res.status(200).json({ result: [] });
+        }
+
         if (resultPK5Fix && resultPK5Fix.length > 0) {
             const result = resultPK5Fix.map(resSQL => ({
                 id: resSQL.id,
                 responsibleAgency: resSQL.responsibleAgency,
                 UserID: resSQL.UserID
             }));
-            res.status(200).json(result);
+            res.status(200).json({ result: result });
         } else {
         res.status(404).json({
             result: '',
@@ -813,6 +833,11 @@ const fnGetResultConPK5 = async (req, res) => {
     try {
         console.log("/api/documents/fnGetResultConPK5");
         const resultConPK5 = await fnGetResultConPK5SQL(data);
+
+        if (resultConPK5 === null) {
+            return res.status(200).json({ result: [] });
+        }
+
         if (resultConPK5 && resultConPK5.length > 0) {
             const result = resultConPK5.map(resSQL => ({
                 id: resSQL.id,
@@ -823,7 +848,7 @@ const fnGetResultConPK5 = async (req, res) => {
                 dateAsessor: resSQL.dateAsessor,
                 UserID: resSQL.UserID
             }));
-            res.status(200).json(result);
+            res.status(200).json({ result: result });
         } else {
         res.status(404).json({ 
             message: "Data not found",
@@ -850,6 +875,11 @@ const fnGetResultConPKF5 = async (req, res) => {
     try {
         console.log("/api/documents/fnGetResultConPKF5");
         const resultConPKF5 = await fnGetResultConPKF5SQL(data);
+
+        if (resultConPKF5 === null) {
+            return res.status(200).json({ result: [] });
+        }
+
         if (resultConPKF5 && resultConPKF5.length > 0) {
             const result = resultConPKF5.map(resSQL => ({
                 id: resSQL.id,
@@ -860,7 +890,7 @@ const fnGetResultConPKF5 = async (req, res) => {
                 dateAsessor: resSQL.dateAsessor,
                 UserID: resSQL.UserID
             }));
-            res.status(200).json(result);
+            res.status(200).json({ result: result });
         } else {
         res.status(404).json({ 
             message: "Data not found",

@@ -323,7 +323,8 @@ const fnGetResultASMSQL = (record) => {
     const query = `SELECT a.id, a.ResultDocID, a.descResultASM, b.UserID
       FROM Result_ASM as a 
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
-      WHERE a.ResultDocID = ${record.userId} AND b.OPSideID = ${record.sideId}
+      INNER JOIN Users as c ON b.UserID = c.id
+      WHERE c.id = ${record.userId} AND b.OPSideID = ${record.sideId}
       AND a.isActive = 1
       ORDER BY a.id
     `;
@@ -342,7 +343,8 @@ const fnGetResultConASMSQL = (record) => {
     const query = `SELECT a.id, a.nameUnit,  a.descConASM,  a.prefixAsessor, a.signPath, a.position, CAST(a.dateAsessor AS CHAR) as dateAsessor, b.UserID
       FROM Result_CON_ASM as a 
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
-      WHERE b.UserID = ${record.userId} AND b.OPSideID = ${record.sideId}
+      INNER JOIN Users as c ON b.UserID = c.id
+      WHERE c.id = ${record.userId} AND b.OPSideID = ${record.sideId}
       ORDER BY a.id
     `;
     pool.query(query, [record], (err, results) => {
@@ -360,7 +362,8 @@ const fnGetResultPFMEVSQL = (record) => {
     const query = `SELECT a.id , a.ResultQRID, a.headRisk , a.objRisk, a.risking, a.activityControl, a.chanceRiskScore , a.effectRiskScore, a.rankRiskScore, a.improvementControl, b.UserID
       FROM Result_PFM_EV as a
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
-      WHERE b.UserID = ${record.userId} AND b.OPSideID = ${record.sideId}
+      INNER JOIN Users as c ON b.UserID = c.id
+      WHERE c.id = ${record.userId} AND b.OPSideID = ${record.sideId}
       ORDER BY a.id
     `;
     pool.query(query, [record], (err, results) => {
@@ -378,7 +381,8 @@ const fnGetResultConPFMEVSQL = (record) => {
     const query = `SELECT a.id, a.nameUnit, a.prefixAsessor, a.signPath, a.position, CAST(a.dateAsessor AS CHAR) as dateAsessor, b.UserID
       FROM Result_CON_PFM_EV as a 
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
-      WHERE b.UserID = ${record.userId} AND b.OPSideID = ${record.sideId}
+      INNER JOIN Users as c ON b.UserID = c.id
+      WHERE c.id = ${record.userId} AND b.OPSideID = ${record.sideId}
       ORDER BY a.id
     `;
     pool.query(query, [record], (err, results) => {
@@ -396,7 +400,8 @@ const fnGetResultChanceRiskSQL = (record) => {
     const query = `SELECT a.id, a.frequencyLV1, a.frequencyLV2, a.frequencyLV3, a.frequencyLV4, a.frequencyLV5, a.chanceRiskScore, b.UserID
       FROM Result_ChanceRisk as a
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
-      WHERE a.ResultPFM_EV_ID = ${record.PFM_EVId} AND b.UserID = ${record.userId} AND b.OPSideID = ${record.sideId}
+      INNER JOIN Users as c ON b.UserID = c.id
+      WHERE a.ResultPFM_EV_ID = ${record.PFM_EVId} AND c.id = ${record.userId} AND b.OPSideID = ${record.sideId}
     `;
     pool.query(query, [record], (err, results) => {
       if (err) {
@@ -413,7 +418,8 @@ const fnGetResultEffectRiskSQL = (record) => {
     const query = `SELECT a.id, a.damageLV1, a.damageLV2, a.damageLV3, a.damageLV4, a.damageLV5, a.effectRiskScore, b.UserID
       FROM Result_EffectRisk as a
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
-      WHERE a.ResultPFM_EV_ID = ${record.PFM_EVId} AND b.UserID = ${record.userId} AND b.OPSideID = ${record.sideId}
+      INNER JOIN Users as c ON b.UserID = c.id
+      WHERE a.ResultPFM_EV_ID = ${record.PFM_EVId} AND c.id = ${record.userId} AND b.OPSideID = ${record.sideId}
     `;
     pool.query(query, [record], (err, results) => {
       if (err) {
@@ -430,7 +436,8 @@ const fnGetResultPK4SQL = (record) => {
     const query = `SELECT a.id, a.ResultDocID, a.descResultPK4 , b.UserID
       FROM Result_PK4 as a
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
-      WHERE b.UserID = ${record.userId}
+      INNER JOIN Users as c ON b.UserID = c.id
+      WHERE c.id = ${record.userId}
       ORDER BY a.id
     `;
     pool.query(query, [record], (err, results) => {
@@ -449,7 +456,7 @@ const fnGetResultConPK4SQL = (record) => {
       FROM Result_CON_PK4 as a 
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
       INNER JOIN Users as c ON b.UserID = c.id
-      WHERE b.UserID = ${record.userId}
+      WHERE c.id = ${record.userId}
       ORDER BY a.id
     `;
     pool.query(query, [record], (err, results) => {
@@ -479,7 +486,8 @@ const fnGetResultHighRiskSQL = (record) => {
       b.UserID, b.OPSideID
       FROM Result_High_Risk as a
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
-      WHERE b.UserID = ${record.userId}
+      INNER JOIN Users as c ON b.UserID = c.id
+      WHERE c.id = ${record.userId}
       ${conditionYear}
       ${conditionIdQR}
       ORDER BY a.id 
@@ -499,7 +507,8 @@ const fnGetResultPK5FixSQL = (record) => {
     const query = `SELECT a.id, a.responsibleAgency, b.UserID
       FROM Result_PK5_Fix as a
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
-      WHERE b.UserID = ${record.userId}
+      INNER JOIN Users as c ON b.UserID = c.id
+      WHERE c.id = ${record.userId}
       ORDER BY a.id
     `;
     pool.query(query, [record], (err, results) => {
@@ -518,7 +527,7 @@ const fnGetResultConPK5SQL = (record) => {
       FROM Result_CON_PK5 as a 
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
       INNER JOIN Users as c ON b.UserID = c.id
-      WHERE b.UserID = ${record.userId}
+      WHERE c.id = ${record.userId}
       ORDER BY a.id
     `;
     pool.query(query, [record], (err, results) => {
@@ -537,7 +546,7 @@ const fnGetResultConPKF5SQL = (record) => {
       FROM Result_CON_PKF5 as a 
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
       INNER JOIN Users as c ON b.UserID = c.id
-      WHERE b.UserID = ${record.userId}
+      WHERE c.id = ${record.userId}
       ORDER BY a.id
     `;
     pool.query(query, [record], (err, results) => {
