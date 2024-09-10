@@ -45,17 +45,17 @@ const fnSetFormPKF5 = async (req, res) => {
 };
 
 const fnSetSignaturePKF5 = async (req, res) => {  
-    const { userId, username, signPath, idConPKF5 } = req.body;
+    const { userDocId, username, signPath, idConPKF5 } = req.body;
 
     const data = {
-        userId,
+        userDocId,
         username,
         signPath,
         idConPKF5
     };
     
   
-    if (!userId || !username || !signPath) {
+    if (!userDocId || !username || !signPath) {
         return res.status(400).json({ error: "some fields cannot be empty!" });
     }
     try {
@@ -72,7 +72,7 @@ const fnSetSignaturePKF5 = async (req, res) => {
         } else {
             resultSetSignature = await fnInsertDataSignaturePKF5SQL(data);
             if (resultSetSignature) {
-                res.status(200).json({ result: 'success' });
+                res.status(200).json({ result: resultSetSignature });
             } else {
                 res.status(404).json({ message: "Data not found" });
             }
@@ -84,10 +84,10 @@ const fnSetSignaturePKF5 = async (req, res) => {
 };
 
 const fnSetAssessorPKF5 = async (req, res) => {  
-    const { userId, username, prefixAsessor, position, dateAsessor, idConPKF5 } = req.body;
+    const { userDocId, username, prefixAsessor, position, dateAsessor, idConPKF5 } = req.body;
 
     const data = {
-        userId,
+        userDocId,
         username,
         prefixAsessor,
         position,
@@ -96,7 +96,7 @@ const fnSetAssessorPKF5 = async (req, res) => {
     };
     
   
-    if (!userId || !username || !prefixAsessor || !position || !dateAsessor) {
+    if (!userDocId || !username || !prefixAsessor || !position || !dateAsessor) {
         return res.status(400).json({ error: "some fields cannot be empty!" });
     }
     try {
@@ -113,7 +113,7 @@ const fnSetAssessorPKF5 = async (req, res) => {
         } else {
             resultSetAssessor = await fnInsertDataAssessorPKF5SQL(data);
             if (resultSetAssessor) {
-                res.status(200).json({ result: 'success' });
+                res.status(200).json({ result: resultSetAssessor });
             } else {
                 res.status(404).json({ message: "Data not found" });
             }

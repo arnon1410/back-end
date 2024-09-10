@@ -5,14 +5,14 @@ const pool = mysql.createPool(config);
   const fnUpdateDataNameUnitPFMSQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.nameUnit || !data.username  || !data.userId) {
+        if (!data || !data.nameUnit || !data.username  || !data.userDocId) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
             UPDATE Result_CON_PFM_EV SET nameUnit = ?, updatedBy = ? 
             WHERE id = ? AND ResultDocID = ?
         `;
-        const params = [data.nameUnit, data.username, data.idConPFM , data.userId];
+        const params = [data.nameUnit, data.username, data.idConPFM , data.userDocId];
   
         pool.query(query, params, (err, result) => {
             if (err) {
@@ -35,7 +35,7 @@ const pool = mysql.createPool(config);
           INSERT INTO Result_CON_PFM_EV (ResultDocID, nameUnit, createdBy, updatedBy, isActive) 
           VALUES (?, ?, ?, ?, 1)
         `;
-        const params = [data.userId, data.nameUnit, data.username, data.username];
+        const params = [data.userDocId, data.nameUnit, data.username, data.username];
   
         pool.query(query, params, (err, result) => {
             if (err) {
@@ -50,13 +50,13 @@ const pool = mysql.createPool(config);
 
   const fnUpdateFormPerformanceSQL = (data) => {
     return new Promise((resolve, reject) => {
-      if (!data || !data.activityControl || !data.improvementControl || !data.username || !data.idPFM || !data.userId) {
+      if (!data || !data.activityControl || !data.improvementControl || !data.username || !data.idPFM || !data.idQR) {
         return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
       }
         const query = `
-          UPDATE Result_PFM_EV SET activityControl = ?, improvementControl= ?, updatedBy = ? WHERE id = ? AND ResultDocID = ? 
+          UPDATE Result_PFM_EV SET activityControl = ?, improvementControl= ?, updatedBy = ? WHERE id = ? AND ResultQRID = ? 
         `;
-        const params = [data.activityControl, data.improvementControl, data.username, data.idPFM, data.userId];
+        const params = [data.activityControl, data.improvementControl, data.username, data.idPFM, data.idQR];
         pool.query(query, params, (err, result) => {
           if (err) {
               // ส่งข้อความข้อผิดพลาดที่ชัดเจน
@@ -91,14 +91,14 @@ const pool = mysql.createPool(config);
 
  const fnUpdateChanceRiskModalSQL = (data) => {
     return new Promise((resolve, reject) => {
-      if (!data.idPFM || !data.userId || !data.username || !data.frequencyLV1 || !data.frequencyLV2 || !data.frequencyLV3 || !data.frequencyLV4 || !data.frequencyLV5 || !data.chanceRiskScore  ) {
+      if (!data.idPFM || !data.username || !data.frequencyLV1 || !data.frequencyLV2 || !data.frequencyLV3 || !data.frequencyLV4 || !data.frequencyLV5 || !data.chanceRiskScore  ) {
         return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
       }
         const query = `
             UPDATE Result_ChanceRisk SET frequencyLV1 = ?, frequencyLV2 = ?, frequencyLV3 = ?, frequencyLV4 = ?, frequencyLV5 = ?, chanceRiskScore = ?, updatedBy = ?
-            WHERE ResultPFM_EV_ID = ? AND ResultDocID = ?
+            WHERE ResultPFM_EV_ID = ?
         `;
-        const params = [data.frequencyLV1, data.frequencyLV2 , data.frequencyLV3, data.frequencyLV4, data.frequencyLV5 , data.chanceRiskScore,  data.username,  data.idPFM,  data.userId ];
+        const params = [data.frequencyLV1, data.frequencyLV2 , data.frequencyLV3, data.frequencyLV4, data.frequencyLV5 , data.chanceRiskScore,  data.username,  data.idPFM];
         pool.query(query, params, (err, result) => {
           if (err) {
               // ส่งข้อความข้อผิดพลาดที่ชัดเจน
@@ -112,14 +112,14 @@ const pool = mysql.createPool(config);
 
  const fnUpdateEffectRiskModalSQL = (data) => {
     return new Promise((resolve, reject) => {
-        if (!data.idPFM || !data.userId || !data.username || !data.damageLV1 || !data.damageLV2 || !data.damageLV3 || !data.damageLV4 || !data.damageLV5 || !data.effectRiskScore) {
+        if (!data.idPFM || !data.username || !data.damageLV1 || !data.damageLV2 || !data.damageLV3 || !data.damageLV4 || !data.damageLV5 || !data.effectRiskScore) {
         return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
       }
         const query = `
           UPDATE Result_EffectRisk SET damageLV1 = ?, damageLV2 = ?, damageLV3 = ?, damageLV4 = ?, damageLV5 = ?, effectRiskScore = ?, updatedBy = ?
-          WHERE ResultPFM_EV_ID = ? AND ResultDocID = ?
+          WHERE ResultPFM_EV_ID = ?
         `;
-        const params = [data.damageLV1, data.damageLV2 , data.damageLV3, data.damageLV4, data.damageLV5 , data.effectRiskScore,  data.username,  data.idPFM,  data.userId ];
+        const params = [data.damageLV1, data.damageLV2 , data.damageLV3, data.damageLV4, data.damageLV5 , data.effectRiskScore,  data.username,  data.idPFM];
         pool.query(query, params, (err, result) => {
           if (err) {
               // ส่งข้อความข้อผิดพลาดที่ชัดเจน
@@ -135,7 +135,7 @@ const pool = mysql.createPool(config);
     return new Promise((resolve, reject) => {
         let strSelect = ''
         let strValue = ''
-        if (!data.idPFM || !data.userId || !data.username) {
+        if (!data.idPFM || !data.username) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         if (data.chanceRiskScore && data.type == 'chanceRisk') {
@@ -151,9 +151,9 @@ const pool = mysql.createPool(config);
         const strRankRiskScore = data.rankRiskScore ? data.rankRiskScore : null
         const query = `
           UPDATE Result_PFM_EV SET ${strSelect} = ?, rankRiskScore = ?, updatedBy = ?
-          WHERE id = ? AND ResultDocID = ?
+          WHERE id = ?
         `;
-        const params = [strValue, strRankRiskScore,  data.username,  data.idPFM,  data.userId];
+        const params = [strValue, strRankRiskScore,  data.username,  data.idPFM];
         pool.query(query, params, (err, result) => {
           if (err) {
               // ส่งข้อความข้อผิดพลาดที่ชัดเจน
@@ -167,7 +167,7 @@ const pool = mysql.createPool(config);
  
  const fnUpdateResultHighRiskSQL = (data) => {
     return new Promise((resolve, reject) => {
-        if (!data.idPFM || !data.userId || !data.username) {
+        if (!data.idPFM || !data.username) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
 
@@ -181,7 +181,7 @@ const pool = mysql.createPool(config);
         const query = `
             UPDATE Result_High_Risk 
             SET existingControl = ?, improvementControl = ?, isActive = ?, updatedBy = ?
-            WHERE ResultDocID = ? AND ResultQRID = ?
+            WHERE ResultQRID = ?
         `;
         
         const params = [
@@ -189,7 +189,6 @@ const pool = mysql.createPool(config);
             improvementControl,
             isActive,
             data.username,
-            data.userId,
             data.idQR
         ];
         
@@ -206,7 +205,7 @@ const pool = mysql.createPool(config);
  const fnInsertResultHighRiskSQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.userId || !data.idQR || !data.headRisk || !data.objRisk || !data.risking || !data.username) {
+        if (!data || !data.idQR || !data.headRisk || !data.objRisk || !data.risking || !data.username) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
 
@@ -215,11 +214,10 @@ const pool = mysql.createPool(config);
         const improvementControl = data.improvementControl === "" ? null : data.improvementControl;
 
         const query = `
-          INSERT INTO Result_High_Risk (ResultDocID, ResultQRID, headRisk, objRisk, risking, existingControl, improvementControl, createdBy, updatedBy, isActive) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+          INSERT INTO Result_High_Risk (ResultQRID, headRisk, objRisk, risking, existingControl, improvementControl, createdBy, updatedBy, isActive) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
         `;
         const params = [
-            parseInt(data.userId), 
             parseInt(data.idQR),
             data.headRisk, 
             data.objRisk, 
@@ -244,14 +242,14 @@ const pool = mysql.createPool(config);
 const fnUpdateDataSignaturePFMSQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.signPath || !data.username , !data.userId) {
+        if (!data || !data.signPath || !data.username , !data.userDocId) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
             UPDATE Result_CON_PFM_EV SET signPath = ?, updatedBy = ? 
             WHERE id = ? AND ResultDocID = ?
         `;
-        const params = [data.signPath, data.username, data.idConPFM , data.userId];
+        const params = [data.signPath, data.username, data.idConPFM , data.userDocId];
   
         pool.query(query, params, (err, result) => {
             if (err) {
@@ -267,21 +265,21 @@ const fnUpdateDataSignaturePFMSQL = (data) => {
 const fnInsertDataSignaturePFMSQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.userId || !data.signPath || !data.username) {
+        if (!data || !data.userDocId || !data.signPath || !data.username) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
           INSERT INTO Result_CON_PFM_EV (ResultDocID, signPath, createdBy, updatedBy, isActive) 
           VALUES (?, ?, ?, ?, 1)
         `;
-        const params = [parseInt(data.userId, 10), data.signPath, data.username, data.username];
+        const params = [parseInt(data.userDocId, 10), data.signPath, data.username, data.username];
   
         pool.query(query, params, (err, result) => {
             if (err) {
                 // ส่งข้อความข้อผิดพลาดที่ชัดเจน
                 reject(new Error(`เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล: ${err.message}`));
             } else {
-                resolve(result);
+                resolve(result.insertId);
             }
         });
     });
@@ -290,14 +288,14 @@ const fnInsertDataSignaturePFMSQL = (data) => {
 const fnUpdateDataAssessorPFMSQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.prefixAsessor || !data.position || !data.dateAsessor || !data.username , !data.userId) {
+        if (!data || !data.prefixAsessor || !data.position || !data.dateAsessor || !data.username , !data.userDocId) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
             UPDATE Result_CON_PFM_EV SET prefixAsessor = ?, position = ?, dateAsessor = ?, updatedBy = ? 
             WHERE id = ? AND ResultDocID = ?
         `;
-        const params = [data.prefixAsessor, data.position, data.dateAsessor, data.username, data.idConPFM , data.userId];
+        const params = [data.prefixAsessor, data.position, data.dateAsessor, data.username, data.idConPFM , data.userDocId];
   
         pool.query(query, params, (err, result) => {
             if (err) {
@@ -313,21 +311,21 @@ const fnUpdateDataAssessorPFMSQL = (data) => {
 const fnInsertDataAssessorPFMSQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.userId || !data.prefixAsessor || !data.position || !data.dateAsessor || !data.username) {
+        if (!data || !data.userDocId || !data.prefixAsessor || !data.position || !data.dateAsessor || !data.username) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
           INSERT INTO Result_CON_PFM_EV (ResultDocID, prefixAsessor, position, dateAsessor, createdBy, updatedBy, isActive) 
           VALUES (?, ?, ?, ?, ?, ?, 1)
         `;
-        const params = [parseInt(data.userId, 10), data.prefixAsessor, data.position, data.dateAsessor, data.username, data.username];
+        const params = [parseInt(data.userDocId, 10), data.prefixAsessor, data.position, data.dateAsessor, data.username, data.username];
   
         pool.query(query, params, (err, result) => {
             if (err) {
                 // ส่งข้อความข้อผิดพลาดที่ชัดเจน
                 reject(new Error(`เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล: ${err.message}`));
             } else {
-                resolve(result);
+                resolve(result.insertId);
             }
         });
     });

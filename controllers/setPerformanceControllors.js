@@ -22,17 +22,17 @@ const {
 } = require("../utils/sqlPerformance");
 
 const fnSetSideNamePFM = async (req, res) => {  
-    const { userId, sideId, username, nameUnit, idConPFM } = req.body;
+    const { userDocId, sideId, username, nameUnit, idConPFM } = req.body;
 
     const data = {
-        userId,
+        userDocId,
         sideId,
         username,
         nameUnit,
         idConPFM
     };
   
-    if (!userId || !sideId || !username) {
+    if (!userDocId || !sideId || !username) {
         return res.status(400).json({ error: "some fields cannot be empty!" });
     }
     try {
@@ -62,17 +62,17 @@ const fnSetSideNamePFM = async (req, res) => {
 };
 
 const fnSetSignaturePFM = async (req, res) => {  
-    const { userId, username, signPath, idConPFM } = req.body;
+    const { userDocId, username, signPath, idConPFM } = req.body;
 
     const data = {
-        userId,
+        userDocId,
         username,
         signPath,
         idConPFM
     };
     
   
-    if (!userId || !username || !signPath) {
+    if (!userDocId || !username || !signPath) {
         return res.status(400).json({ error: "some fields cannot be empty!" });
     }
     try {
@@ -89,7 +89,7 @@ const fnSetSignaturePFM = async (req, res) => {
         } else {
             resultSetSignature = await fnInsertDataSignaturePFMSQL(data);
             if (resultSetSignature) {
-                res.status(200).json({ result: 'success' });
+                res.status(200).json({ result: resultSetSignature });
             } else {
                 res.status(404).json({ message: "Data not found" });
             }
@@ -101,10 +101,10 @@ const fnSetSignaturePFM = async (req, res) => {
 };
 
 const fnSetAssessorPFM = async (req, res) => {  
-    const { userId, username, prefixAsessor, position, dateAsessor, idConPFM } = req.body;
+    const { userDocId, username, prefixAsessor, position, dateAsessor, idConPFM } = req.body;
 
     const data = {
-        userId,
+        userDocId,
         username,
         prefixAsessor,
         position,
@@ -113,7 +113,7 @@ const fnSetAssessorPFM = async (req, res) => {
     };
     
   
-    if (!userId || !username || !prefixAsessor || !position || !dateAsessor) {
+    if (!userDocId || !username || !prefixAsessor || !position || !dateAsessor) {
         return res.status(400).json({ error: "some fields cannot be empty!" });
     }
     try {
@@ -130,7 +130,7 @@ const fnSetAssessorPFM = async (req, res) => {
         } else {
             resultSetAssessor = await fnInsertDataAssessorPFMSQL(data);
             if (resultSetAssessor) {
-                res.status(200).json({ result: 'success' });
+                res.status(200).json({ result: resultSetAssessor });
             } else {
                 res.status(404).json({ message: "Data not found" });
             }

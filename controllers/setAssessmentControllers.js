@@ -3,6 +3,7 @@ const {
     fnInsertDataNameUnitASMSQL,
     fnUpdateFormAssessmentSQL,
     fnUpdateConAssessmentSQL,
+    fnInsertConAssessmentSQL,
     fnUpdateStatusDocASMSQL,
     fnUpdateDataAssessorASMSQL,
     fnInsertDataAssessorASMSQL,
@@ -12,17 +13,17 @@ const {
 } = require("../utils/sqlAssessment");
 
 const fnSetSideNameASM = async (req, res) => {  
-    const { userId, sideId, username, nameUnit, idConASM } = req.body;
+    const { userDocId, sideId, username, nameUnit, idConASM } = req.body;
 
     const data = {
-        userId,
+        userDocId,
         sideId,
         username,
         nameUnit,
         idConASM
     };
   
-    if (!userId || !sideId || !username) {
+    if (!userDocId || !sideId || !username) {
         return res.status(400).json({ error: "some fields cannot be empty!" });
     }
     try {
@@ -68,8 +69,10 @@ const fnSetFormAssessment = async (req, res) => {
 
             if (data.idASM) {
                 result = await fnUpdateFormAssessmentSQL(data);
-            } else if (data.idConASM) {
+            } else if (data.idConASM  && data.descResultConASM) {
                 result = await fnUpdateConAssessmentSQL(data);
+            } else if (!data.idConPK4 && data.descResultConASM) {
+                result = await fnInsertConAssessmentSQL(data);
             } else {
                 // กรณีไม่มีทั้ง idASM และ idConASM
                 updateSuccess = false;
@@ -85,7 +88,12 @@ const fnSetFormAssessment = async (req, res) => {
         if (updateSuccess) {
             await fnUpdateStatusDocASMSQL(dataArray[0]); // อัปเดตสถานะเอกสารเมื่ออัปเดตข้อมูลเสร็จสิ้นแล้ว
             console.log('UpdateStatusDoc : Success');
-            res.status(200).json({ result: 'success' });
+            if (!data.idConPK4 && data.descResultConASM) {
+                res.status(200).json({ result: result });
+            } else {
+                res.status(200).json({ result: 'success' });
+            }
+           
         } else {
             res.status(500).json({ error: 'Failed to update all records', status: 'error' });
         }
@@ -95,17 +103,17 @@ const fnSetFormAssessment = async (req, res) => {
 };
 
 const fnSetSignatureASM = async (req, res) => {  
-    const { userId, username, signPath, idConASM } = req.body;
+    const { userDocId, username, signPath, idConASM } = req.body;
 
     const data = {
-        userId,
+        userDocId,
         username,
         signPath,
         idConASM
     };
     
   
-    if (!userId || !username || !signPath) {
+    if (!userDocId || !username || !signPath) {
         return res.status(400).json({ error: "some fields cannot be empty!" });
     }
     try {
@@ -122,7 +130,7 @@ const fnSetSignatureASM = async (req, res) => {
         } else {
             resultSetSignature = await fnInsertDataSignatureASMSQL(data);
             if (resultSetSignature) {
-                res.status(200).json({ result: 'success' });
+                res.status(200).json({ result: resultSetSignature });
             } else {
                 res.status(404).json({ message: "Data not found" });
             }
@@ -134,10 +142,10 @@ const fnSetSignatureASM = async (req, res) => {
 };
 
 const fnSetAssessorASM = async (req, res) => {  
-    const { userId, username, prefixAsessor, position, dateAsessor, idConASM } = req.body;
+    const { userDocId, username, prefixAsessor, position, dateAsessor, idConASM } = req.body;
 
     const data = {
-        userId,
+        userDocId,
         username,
         prefixAsessor,
         position,
@@ -146,7 +154,7 @@ const fnSetAssessorASM = async (req, res) => {
     };
     
   
-    if (!userId || !username || !prefixAsessor || !position || !dateAsessor) {
+    if (!userDocId || !username || !prefixAsessor || !position || !dateAsessor) {
         return res.status(400).json({ error: "some fields cannot be empty!" });
     }
     try {
@@ -163,7 +171,7 @@ const fnSetAssessorASM = async (req, res) => {
         } else {
             resultSetAssessor = await fnInsertDataAssessorASMSQL(data);
             if (resultSetAssessor) {
-                res.status(200).json({ result: 'success' });
+                res.status(200).json({ result: resultSetAssessor });
             } else {
                 res.status(404).json({ message: "Data not found" });
             }

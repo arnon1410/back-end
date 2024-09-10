@@ -13,6 +13,7 @@ const fnUpdateResultQRSQL = (data) => {
         `;
         const params = [data.checkbox , data.descResultQR , data.username, data.idQR];
         pool.query(query, params, (err, result) => {
+            console.log(query)
           if (err) {
               // ส่งข้อความข้อผิดพลาดที่ชัดเจน
               reject(new Error(`เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล: ${err.message}`));
@@ -24,16 +25,17 @@ const fnUpdateResultQRSQL = (data) => {
   };
   
   const fnUpdateResultOPMSQL = (data) => {
+    console.log(data)
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.headName || !data.objName || !data.descResultQR || !data.username || !data.userId || !data.idQR) {
+        if (!data || !data.headName || !data.objName || !data.descResultQR || !data.username || !data.userDocId || !data.idQR) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
             UPDATE OPM SET OPM_Name = ?, OPM_Objective = ?, OPM_Desc = ?, updatedBy = ? 
             WHERE ResultDocID = ? AND ResultQRID = ?
         `;
-        const params = [data.headName, data.objName, data.descResultQR, data.username, data.userId, data.idQR];
+        const params = [data.headName, data.objName, data.descResultQR, data.username, data.userDocId, data.idQR];
   
         pool.query(query, params, (err, result) => {
             if (err) {
@@ -46,39 +48,17 @@ const fnUpdateResultQRSQL = (data) => {
     });
   };
   
-//   const fnInsertResultOPMSQL = (data) => {
-//     return new Promise((resolve, reject) => {
-//         // ตรวจสอบว่า data มีค่าที่ต้องการ
-//         if (!data || !data.userId || !data.idQR || !data.headName || !data.objName || !data.descResultQR || !data.username) {
-//             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
-//         }
-//         const query = `
-//           INSERT INTO OPM (ResultDocID, ResultQRID, OPM_Name, OPM_Objective, OPM_Desc, createdBy, updatedBy, isActive) VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-//         `;
-//         const params = [data.userId, data.idQR, data.headName, data.objName, data.descResultQR, data.username, data.username];
-  
-//         pool.query(query, params, (err, result) => {
-//             if (err) {
-//                 // ส่งข้อความข้อผิดพลาดที่ชัดเจน
-//                 reject(new Error(`เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล: ${err.message}`));
-//             } else {
-//                 resolve(result);
-//             }
-//         });
-//     });
-//   };
-  
   const fnUpdateResultPFM_EV = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.headName || !data.objName || !data.descResultQR || !data.username || !data.idQR) {
+        if (!data || !data.headName || !data.objName || !data.descResultQR || !data.username || !data.userDocId || !data.idQR) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
             UPDATE Result_PFM_EV SET headRisk = ?, objRisk = ?, risking = ?, updatedBy = ? 
             WHERE ResultDocID = ? AND ResultQRID = ?
         `;
-        const params = [data.headName, data.objName, data.descResultQR, data.username, data.idQR];
+        const params = [data.headName, data.objName, data.descResultQR, data.username, data.userDocId, data.idQR];
   
         pool.query(query, params, (err, result) => {
             if (err) {
@@ -98,7 +78,7 @@ const fnUpdateResultQRSQL = (data) => {
             VALUES (?, ?, ?, ?, ?, ?, ?, 1)
         `;
         const paramsOPM = [
-            parseInt(data.userId, 10),
+            parseInt(data.userDocId, 10),
             parseInt(data.idQR, 10),
             data.headName,
             data.objName,
@@ -134,11 +114,10 @@ const fnUpdateResultQRSQL = (data) => {
                     // console.log('Insert ID from OPM:', strOPM_ID);
 
                     const queryPFM_EV = `
-                        INSERT INTO Result_PFM_EV (ResultDocID, ResultQRID, OPM_ID, headRisk, objRisk, risking, createdBy, updatedBy, isActive)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+                        INSERT INTO Result_PFM_EV (ResultQRID, OPM_ID, headRisk, objRisk, risking, createdBy, updatedBy, isActive)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, 1)
                     `;
                     const paramsPFM_EV = [
-                        parseInt(data.userId, 10),
                         parseInt(data.idQR, 10),
                         parseInt(strOPM_ID),  // ใช้ id จากการ insert ลง OPM
                         data.headName,
@@ -161,11 +140,10 @@ const fnUpdateResultQRSQL = (data) => {
                         console.log('Insert ID from queryPFM_EV:', strPFM_EV);
 
                         const queryChanceRisk = `
-                            INSERT INTO Result_ChanceRisk (ResultDocID, ResultPFM_EV_ID, createdBy, updatedBy, isActive)
-                            VALUES (?, ?, ?, ?, 1)
+                            INSERT INTO Result_ChanceRisk (ResultPFM_EV_ID, createdBy, updatedBy, isActive)
+                            VALUES (?, ?, ?, 1)
                         `;
                         const paramsChanceRisk = [
-                            parseInt(data.userId, 10),
                             parseInt(strPFM_EV, 10),
                             data.username,
                             data.username
@@ -181,11 +159,10 @@ const fnUpdateResultQRSQL = (data) => {
                             }
 
                             const queryEffectRisk = `
-                                INSERT INTO Result_EffectRisk (ResultDocID, ResultPFM_EV_ID, createdBy, updatedBy, isActive)
-                                VALUES (?, ?, ?, ?, 1)
+                                INSERT INTO Result_EffectRisk (ResultPFM_EV_ID, createdBy, updatedBy, isActive)
+                                VALUES (?, ?, ?, 1)
                             `;
                             const paramsEffectRisk = [
-                                parseInt(data.userId, 10),
                                 parseInt(strPFM_EV, 10),
                                 data.username,
                                 data.username
@@ -232,7 +209,7 @@ const fnUpdateResultQRSQL = (data) => {
             UPDATE OTHER_S_OP SET text = ?, updatedBy = ? 
             WHERE ResultDocID = ? AND ResultQRID = ?
         `;
-        const params = [data.descResultEndQR , data.username, data.userId, data.idQR];
+        const params = [data.descResultEndQR , data.username, parseInt(data.userDocId, 10), data.idQR];
         pool.query(query, params, (err, result) => {
           if (err) {
               // ส่งข้อความข้อผิดพลาดที่ชัดเจน
@@ -247,14 +224,14 @@ const fnUpdateResultQRSQL = (data) => {
   const fnUpdateResultOPMSubSQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.descResultEndQR || !data.username || !data.userId || !data.idQR) {
+        if (!data || !data.descResultEndQR || !data.username || !data.userDocId || !data.idQR) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
             UPDATE OPM SET OPM_Desc = ?, updatedBy = ? 
             WHERE ResultDocID = ? AND ResultQRID = ?
         `;
-        const params = [data.descResultEndQR, data.username, data.userId, data.idQR];
+        const params = [data.descResultEndQR, data.username, parseInt(data.userDocId, 10), data.idQR];
   
         pool.query(query, params, (err, result) => {
             if (err) {
@@ -277,7 +254,7 @@ const fnUpdateResultQRSQL = (data) => {
             UPDATE Result_PFM_EV SET risking = ?, updatedBy = ? 
             WHERE ResultDocID = ? AND ResultQRID = ?
         `;
-        const params = [data.descResultEndQR, data.username, data.userId, data.idQR];
+        const params = [data.descResultEndQR, data.username, parseInt(data.userDocId, 10), data.idQR];
   
         pool.query(query, params, (err, result) => {
             if (err) {
@@ -314,13 +291,14 @@ const fnUpdateResultQRSQL = (data) => {
   const fnInsertResultConQRSQL = (data) => { // nameUnit ยังไม่ส่งมา
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.userId || !data.idConQR || !data.head_id || !data.descConQR || !data.username) {
+        console.log(data)
+        if (!data.userDocId || !data.descConQR || !data.username) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
-          INSERT INTO Result_Con_QR (ResultDocID, head_id, radio, descConQR, createdBy, updatedBy, isActive) VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+          INSERT INTO Result_Con_QR (ResultDocID, descConQR, createdBy, updatedBy, isActive) VALUES (?, ?, ?, ?, 1)
         `;
-        const params = [data.userId, data.head_id, data.radio, data.descConQR, data.username, data.username];
+        const params = [parseInt(data.userDocId, 10), data.descConQR, data.username, data.username];
   
         pool.query(query, params, (err, result) => {
             if (err) {
@@ -361,7 +339,7 @@ const fnUpdateResultQRSQL = (data) => {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
         `;
         const params1 = [
-            parseInt(data.userId, 10), 
+            parseInt(data.userDocId, 10), 
             parseInt(data.idControlHead, 10), 
             parseInt(data.headId, 10), 
             parseInt(data.headId, 10), 
@@ -402,7 +380,7 @@ const fnUpdateResultQRSQL = (data) => {
                         VALUES (?, ?, ?, '0', ?, ?, ?, 1)
                     `;
                     const params2 = [
-                        parseInt(data.userId, 10), 
+                        parseInt(data.userDocId, 10), 
                         parseInt(strIdOther, 10), 
                         parseInt(data.headId, 10), 
                         data.descEndQR, 
@@ -500,20 +478,20 @@ const fnUpdateResultQRSQL = (data) => {
                         };
   
                         const paramsSet1 = {
-                            params3: [data.userId, data.descSub, data.username, data.username, data.idControlSub],
-                            params4: [data.userId, data.descSub, data.username, data.username],
-                            params5: [data.userId, data.headText, data.objectName, data.descSub, data.username, data.username],
-                            params6: [data.userId, data.headText, data.objectName, data.descSub, data.username, data.username]
+                            params3: [data.userDocId, data.descSub, data.username, data.username, data.idControlSub],
+                            params4: [data.userDocId, data.descSub, data.username, data.username],
+                            params5: [data.userDocId, data.headText, data.objectName, data.descSub, data.username, data.username],
+                            params6: [data.userDocId, data.headText, data.objectName, data.descSub, data.username, data.username]
                         };
   
                         insertRows(paramsSet1)
                             .then(() => {
                                 if (data.idControlSub2 && data.subText2 && data.descSub2) {
                                     const paramsSet2 = {
-                                        params3: [data.userId, data.descSub2, data.username, data.username, data.idControlSub2],
-                                        params4: [data.userId, data.descSub2, data.username, data.username],
-                                        params5: [data.userId, data.headText, data.objectName, data.descSub2, data.username, data.username],
-                                        params6: [data.userId, data.headText, data.objectName, data.descSub2, data.username, data.username]
+                                        params3: [data.userDocId, data.descSub2, data.username, data.username, data.idControlSub2],
+                                        params4: [data.userDocId, data.descSub2, data.username, data.username],
+                                        params5: [data.userDocId, data.headText, data.objectName, data.descSub2, data.username, data.username],
+                                        params6: [data.userDocId, data.headText, data.objectName, data.descSub2, data.username, data.username]
                                     };
                                     
                                     return insertRows(paramsSet2);
@@ -645,14 +623,14 @@ const fnUpdateResultQRSQL = (data) => {
   const fnUpdateDataSignatureQRSQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.signPath || !data.username , !data.userId) {
+        if (!data || !data.signPath || !data.username , !data.userDocId) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
             UPDATE Result_CON_QR SET signPath = ?, updatedBy = ? 
             WHERE id = ? AND ResultDocID = ?
         `;
-        const params = [data.signPath, data.username, data.idConQR , data.userId];
+        const params = [data.signPath, data.username, data.idConQR , data.userDocId];
   
         pool.query(query, params, (err, result) => {
             if (err) {
@@ -668,21 +646,21 @@ const fnUpdateResultQRSQL = (data) => {
 const fnInsertDataSignatureQRSQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.userId || !data.signPath || !data.username) {
+        if (!data || !data.userDocId || !data.signPath || !data.username) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
           INSERT INTO Result_CON_QR (ResultDocID, signPath, createdBy, updatedBy, isActive) 
           VALUES (?, ?, ?, ?, 1)
         `;
-        const params = [parseInt(data.userId, 10), data.signPath, data.username, data.username];
+        const params = [parseInt(data.userDocId, 10), data.signPath, data.username, data.username];
   
         pool.query(query, params, (err, result) => {
             if (err) {
                 // ส่งข้อความข้อผิดพลาดที่ชัดเจน
                 reject(new Error(`เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล: ${err.message}`));
             } else {
-                resolve(result);
+                resolve(result.insertId);
             }
         });
     });
@@ -691,14 +669,14 @@ const fnInsertDataSignatureQRSQL = (data) => {
 const fnUpdateDataAssessorQRSQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.prefixAsessor || !data.position || !data.dateAsessor || !data.username , !data.userId) {
+        if (!data || !data.prefixAsessor || !data.position || !data.dateAsessor || !data.username , !data.userDocId) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
             UPDATE Result_CON_QR SET prefixAsessor = ?, position = ?, dateAsessor = ?, updatedBy = ? 
             WHERE id = ? AND ResultDocID = ?
         `;
-        const params = [data.prefixAsessor, data.position, data.dateAsessor, data.username, data.idConQR , data.userId];
+        const params = [data.prefixAsessor, data.position, data.dateAsessor, data.username, data.idConQR , data.userDocId];
   
         pool.query(query, params, (err, result) => {
             if (err) {
@@ -714,21 +692,22 @@ const fnUpdateDataAssessorQRSQL = (data) => {
 const fnInsertDataAssessorQRSQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.userId || !data.prefixAsessor || !data.position || !data.dateAsessor || !data.username) {
+        if (!data || !data.userDocId || !data.prefixAsessor || !data.position || !data.dateAsessor || !data.username) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
           INSERT INTO Result_CON_QR (ResultDocID, prefixAsessor, position, dateAsessor, createdBy, updatedBy, isActive) 
           VALUES (?, ?, ?, ?, ?, ?, 1)
         `;
-        const params = [parseInt(data.userId, 10), data.prefixAsessor, data.position, data.dateAsessor, data.username, data.username];
+        const params = [parseInt(data.userDocId, 10), data.prefixAsessor, data.position, data.dateAsessor, data.username, data.username];
   
         pool.query(query, params, (err, result) => {
             if (err) {
                 // ส่งข้อความข้อผิดพลาดที่ชัดเจน
                 reject(new Error(`เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล: ${err.message}`));
             } else {
-                resolve(result);
+                // ส่งคืนค่า id ที่เพิ่ง insert
+                resolve(result.insertId);
             }
         });
     });

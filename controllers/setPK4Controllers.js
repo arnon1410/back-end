@@ -1,6 +1,7 @@
 const {
     fnUpdateFormPK4SQL,
     fnUpdateConPK4SQL,
+    fnInsertConPK4SQL,
     fnUpdateStatusDocPK4SQL,
     fnUpdateDataAssessorPK4SQL,
     fnInsertDataAssessorPK4SQL,
@@ -26,8 +27,10 @@ const fnSetFormPK4 = async (req, res) => {
 
             if (data.idPK4) {
                 result = await fnUpdateFormPK4SQL(data);
-            } else if (data.idConPK4) {
+            } else if (data.idConPK4 && data.descResultConPK4) {
                 result = await fnUpdateConPK4SQL(data);
+            } else if (!data.idConPK4 && data.descResultConPK4) {
+                result = await fnInsertConPK4SQL(data);
             } else {
                 // กรณีไม่มีทั้ง idPK4 และ idConPK4
                 updateSuccess = false;
@@ -43,7 +46,11 @@ const fnSetFormPK4 = async (req, res) => {
         if (updateSuccess) {
             await fnUpdateStatusDocPK4SQL(dataArray[0]); // อัปเดตสถานะเอกสารเมื่ออัปเดตข้อมูลเสร็จสิ้นแล้ว
             console.log('UpdateStatusDoc : Success');
-            res.status(200).json({ result: 'success' });
+            if (!data.idConPK4 && data.descResultConPK4) {
+                res.status(200).json({ result: result });
+            } else {
+                res.status(200).json({ result: 'success' });
+            }
         } else {
             res.status(500).json({ error: 'Failed to update all records', status: 'error' });
         }
@@ -53,17 +60,17 @@ const fnSetFormPK4 = async (req, res) => {
 };
 
 const fnSetSignaturePK4 = async (req, res) => {  
-    const { userId, username, signPath, idConPK4 } = req.body;
+    const { userDocId, username, signPath, idConPK4 } = req.body;
 
     const data = {
-        userId,
+        userDocId,
         username,
         signPath,
         idConPK4
     };
     
   
-    if (!userId || !username || !signPath) {
+    if (!userDocId || !username || !signPath) {
         return res.status(400).json({ error: "some fields cannot be empty!" });
     }
     try {
@@ -80,7 +87,7 @@ const fnSetSignaturePK4 = async (req, res) => {
         } else {
             resultSetSignature = await fnInsertDataSignaturePK4SQL(data);
             if (resultSetSignature) {
-                res.status(200).json({ result: 'success' });
+                res.status(200).json({ result: resultSetSignature });
             } else {
                 res.status(404).json({ message: "Data not found" });
             }
@@ -92,10 +99,10 @@ const fnSetSignaturePK4 = async (req, res) => {
 };
 
 const fnSetAssessorPK4 = async (req, res) => {  
-    const { userId, username, prefixAsessor, position, dateAsessor, idConPK4 } = req.body;
+    const { userDocId, username, prefixAsessor, position, dateAsessor, idConPK4 } = req.body;
 
     const data = {
-        userId,
+        userDocId,
         username,
         prefixAsessor,
         position,
@@ -104,7 +111,7 @@ const fnSetAssessorPK4 = async (req, res) => {
     };
     
   
-    if (!userId || !username || !prefixAsessor || !position || !dateAsessor) {
+    if (!userDocId || !username || !prefixAsessor || !position || !dateAsessor) {
         return res.status(400).json({ error: "some fields cannot be empty!" });
     }
     try {
@@ -121,7 +128,7 @@ const fnSetAssessorPK4 = async (req, res) => {
         } else {
             resultSetAssessor = await fnInsertDataAssessorPK4SQL(data);
             if (resultSetAssessor) {
-                res.status(200).json({ result: 'success' });
+                res.status(200).json({ result: resultSetAssessor });
             } else {
                 res.status(404).json({ message: "Data not found" });
             }

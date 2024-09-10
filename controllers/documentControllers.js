@@ -70,11 +70,12 @@ const fnUpdateCommentForAdmin = async (req, res) => {
   };
 
 const fnGetResultDoc = async (req, res) => {
-  const { userId, sideId, isAdmin } = req.body;
+  const { userId, sideId, formId, isAdmin } = req.body;
   
   const data = {
     userId,
     sideId,
+    formId,
     isAdmin
   };
 
@@ -109,7 +110,7 @@ const fnGetResultDoc = async (req, res) => {
             opFormName: resDoc.OPFormName,
             opStatusName: resDoc.OPStatusName
           }));
-        res.status(200).json(combinedData);
+        res.status(200).json({ result: combinedData });
     } else {
       res.status(404).json({ 
         message: "Data not found",

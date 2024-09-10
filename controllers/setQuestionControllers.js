@@ -16,6 +16,7 @@ const {
     fnUpdateResultPFM_EV,
     // fnInsertResultOPMSQL,
     fnSetResultRiskSQL,
+    fnUpdateResultOtherOPSubSQL,
     fnUpdateResultPFM_EVSub,
     fnUpdateResultOPMSubSQL,
     fnUpdateStatusDocQRSQL,
@@ -26,7 +27,7 @@ const {
     fnUpdateDataAssessorQRSQL,
     fnInsertDataAssessorQRSQL,
     fnUpdateDataSignatureQRSQL,
-    fnInsertDataSignatureQRSQL,
+    fnInsertDataSignatureQRSQL
 
 } = require("../utils/sqlQuestion");
 
@@ -122,7 +123,6 @@ const fnProcessMainQR = async (fields) => {
                         resultOPMOld.data[0].nameOld === fields.headName &&
                         resultOPMOld.data[0].objectiveOld === fields.objName &&
                         resultOPMOld.data[0].descOld === fields.descResultQR;
-            
                     if (!isEqualOPM) {
                         await fnUpdateResultOPMSQL(fields);
                         console.log('UpdateResultOPM : Success');
@@ -172,9 +172,10 @@ const fnProcessMainEndQR = async (fields) => {
 
             // ตรวจสอบว่าค่า radioOld เท่ากับ radio และ descResultQROld เท่ากับ descResultQR หรือไม่
             const isEqualQR = 
-                resultEndQROld.data[0].radioOld === fields.radio;
-
+                resultEndQROld.data[0].radioOld === fields.radio &&
+                resultEndQROld.data[0].descResultEndQROld === fields.descResultEndQR;
             // ถ้าไม่เท่ากัน ให้คอลฟังก์ชัน fnUpdateResultEndQRSQL
+            console.log(fields)
             if (!isEqualQR) {
                 await fnUpdateResultEndQRSQL(fields);
                 console.log('UpdateResultEndQR : Success');
@@ -249,10 +250,11 @@ const fnProcessConQR = async (fields) => {
 };
 
 const fnSetQuestionOther = async (req, res) => {  
-    const { userId, sideId, username, idControlHead, idControlSub, idControlSub2, headId, headText, subText, subText2, objectName, descSub, descSub2, descEndQR } = req.body;
+    const { userId, userDocId, sideId, username, idControlHead, idControlSub, idControlSub2, headId, headText, subText, subText2, objectName, descSub, descSub2, descEndQR } = req.body;
 
     const data = {
         userId,
+        userDocId,
         sideId,
         username,
         idControlHead,
@@ -267,9 +269,9 @@ const fnSetQuestionOther = async (req, res) => {
         descSub2,
         descEndQR
     };
-    
+
   
-    if (!userId || !sideId || !username || !idControlHead || !idControlSub || !headId || !headText || !subText || !objectName || !descSub || !descEndQR) {
+    if (!userId || !userDocId || !sideId || !username || !idControlHead || !idControlSub || !headId || !headText || !subText || !objectName || !descSub || !descEndQR) {
         return res.status(400).json({ error: "some fields cannot be empty!" });
     }
     try {
@@ -286,17 +288,17 @@ const fnSetQuestionOther = async (req, res) => {
 };
 
 const fnSetSignatureQR = async (req, res) => {  
-    const { userId, username, signPath, idConQR } = req.body;
+    const { userDocId, username, signPath, idConQR } = req.body;
 
     const data = {
-        userId,
+        userDocId,
         username,
         signPath,
         idConQR
     };
     
   
-    if (!userId || !username || !signPath) {
+    if (!userDocId || !username || !signPath) {
         return res.status(400).json({ error: "some fields cannot be empty!" });
     }
     try {
@@ -313,7 +315,7 @@ const fnSetSignatureQR = async (req, res) => {
         } else {
             resultSetSignature = await fnInsertDataSignatureQRSQL(data);
             if (resultSetSignature) {
-                res.status(200).json({ result: 'success' });
+                res.status(200).json({ result: resultSetSignature });
             } else {
                 res.status(404).json({ message: "Data not found" });
             }
@@ -325,10 +327,10 @@ const fnSetSignatureQR = async (req, res) => {
 };
 
 const fnSetAssessorQR = async (req, res) => {  
-    const { userId, username, prefixAsessor, position, dateAsessor, idConQR } = req.body;
+    const { userDocId, username, prefixAsessor, position, dateAsessor, idConQR } = req.body;
 
     const data = {
-        userId,
+        userDocId,
         username,
         prefixAsessor,
         position,
@@ -337,7 +339,7 @@ const fnSetAssessorQR = async (req, res) => {
     };
     
   
-    if (!userId || !username || !prefixAsessor || !position || !dateAsessor) {
+    if (!userDocId || !username || !prefixAsessor || !position || !dateAsessor) {
         return res.status(400).json({ error: "some fields cannot be empty!" });
     }
     try {
@@ -346,6 +348,7 @@ const fnSetAssessorQR = async (req, res) => {
 
         if (idConQR) {
             resultSetAssessor = await fnUpdateDataAssessorQRSQL(data);
+            console.log('Update result:', resultSetAssessor);  // ตรวจสอบผลลัพธ์ที่ได้
             if (resultSetAssessor) {
                 res.status(200).json({ result: 'success' });
             } else {
@@ -353,8 +356,9 @@ const fnSetAssessorQR = async (req, res) => {
             }
         } else {
             resultSetAssessor = await fnInsertDataAssessorQRSQL(data);
+            console.log('Insert result:', resultSetAssessor);  // ตรวจสอบผลลัพธ์ที่ได้
             if (resultSetAssessor) {
-                res.status(200).json({ result: 'success' });
+                res.status(200).json({ result: resultSetAssessor });
             } else {
                 res.status(404).json({ message: "Data not found" });
             }

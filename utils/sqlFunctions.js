@@ -44,9 +44,9 @@ const fnInsertRecordSQL = (tableName, record) => {
 };
 
 const fnGetResultDocSQL = (record) => {
-  var conditionWhere = ''
-  if (record.isAdmin !== '1') { // ถ้าไม่ใช่ Admin 
-    conditionWhere = `AND b.id = ${record.userId} AND c.id = ${record.sideId}`
+  var conditionFormId = ''
+  if (record.formId) { // ถ้าไม่ใช่ Admin 
+    conditionFormId = `AND d.id = ${record.formId} `
   }
   return new Promise((resolve, reject) => {
     const query = `SELECT a.*, b.username, c.OPSideName, d.OPFormName, e.OPStatusName
@@ -56,7 +56,8 @@ const fnGetResultDocSQL = (record) => {
       INNER JOIN OP_Form as d ON a.OPFormID = d.id
       INNER JOIN OP_Status as e ON a.OPStatusID = e.id 
       WHERE a.opSideID <> 1
-      ${conditionWhere}
+      AND b.id = ${record.userId} AND c.id = ${record.sideId}
+      ${conditionFormId}
       ORDER BY OPFormID
     `;
     pool.query(query, [record], (err, results) => {
@@ -118,11 +119,12 @@ const fnGetResultQRSQL = (record) => {
     conditionSpecific = `AND a.id = ${record.idQR}`
   }
   return new Promise((resolve, reject) => {
-    const query = `SELECT a.id , a.checkbox, a.descResultQR, b.UserID, c.fileName
+    const query = `SELECT a.id , a.checkbox, a.descResultQR, b.UserID, d.fileName
       FROM Result_QR as a 
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
-      LEFT JOIN Result_File_QR as c ON a.id = c.ResultQRID
-      WHERE b.UserID = ${record.userId} AND b.OPSideID = ${record.sideId} AND b.OPFormID = 2
+      INNER JOIN Users as c ON b.UserID = c.id
+      LEFT JOIN Result_File_QR as d ON a.id = d.ResultQRID
+      WHERE c.id = ${record.userId} AND b.OPSideID = ${record.sideId} AND b.OPFormID = 2
       ${conditionSpecific}
       ORDER BY a.id
     `;
@@ -145,7 +147,7 @@ const fnGetResultOPMSQL = (record) => {
       AND YEAR(updatedAt) = YEAR(CURDATE())
     `;
 
-    const params = [record.userId, record.idQR];
+    const params = [record.userDocId, record.idQR];
     
     pool.query(query, params, (err, results) => {
       if (err) {
@@ -181,21 +183,30 @@ const fnGetResultOPMSQL = (record) => {
 
 const fnGetResultEndQRSQL = (record) => {
   var conditionOther = ''
-  var conditionSpecific = ''
+  var conditionIdEndQR = ''
+  var conditionIdHead = ''
+
   if (record.otherId) {
     conditionOther = `AND a.OtherID = ${record.otherId}`
   }
 
   if (record.idEndQR) {
-    conditionSpecific = `AND a.id = ${record.idEndQR}`
+    conditionIdEndQR = `AND a.id = ${record.idEndQR}`
   }
+
+  if (record.head_id) {
+    conditionIdEndQR = `AND a.head_id = ${record.head_id}`
+  }
+
   return new Promise((resolve, reject) => {
     const query = `SELECT a.id , a.head_id, a.radio, a.descResultEndQR, b.UserID
       FROM Result_End_QR as a 
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
-      WHERE b.UserID = ${record.userId} AND b.OPSideID = ${record.sideId}
+      INNER JOIN Users as c ON b.UserID = c.id
+      WHERE c.id = ${record.userId} AND b.OPSideID = ${record.sideId}
       ${conditionOther}
-      ${conditionSpecific}
+      ${conditionIdEndQR}
+      ${conditionIdHead}
       ORDER BY a.id
     `;
     pool.query(query, [record], (err, results) => {
@@ -211,7 +222,7 @@ const fnGetResultEndQRSQL = (record) => {
 const fnUpdateResultEndQRSQL = (data) => {
   return new Promise((resolve, reject) => {
       // ตรวจสอบว่า data มีค่าที่ต้องการ
-      if (!data || !data.radio || !data.descResultEndQR || !data.username || !data.idEndQR) {
+      if (!data.radio || !data.descResultEndQR || !data.username || !data.idEndQR) {
         return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
       }
       const query = `
@@ -232,14 +243,14 @@ const fnUpdateResultEndQRSQL = (data) => {
 const fnInsertResultEndQRSQL = (data) => {
   return new Promise((resolve, reject) => {
       // ตรวจสอบว่า data มีค่าที่ต้องการ
-      if (!data || !data.userId || !data.head_id || !data.descResultEndQR || !data.username) {
+      if (!data || !data.userDocId || !data.head_id || !data.descResultEndQR || !data.username) {
           return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
       }
       const query = `
         INSERT INTO Result_End_QR (ResultDocID, head_id, radio, descResultEndQR, createdBy, updatedBy, isActive)
         VALUES (?, ?, ?, ?, ?, ?, 1)
       `;
-      const params = [data.userId, data.head_id, data.radio, data.descResultEndQR, data.username, data.username];
+      const params = [parseInt(data.userDocId, 10), data.head_id, data.radio, data.descResultEndQR, data.username, data.username];
 
       pool.query(query, params, (err, result) => {
           if (err) {
@@ -257,8 +268,9 @@ const fnGetResultOtherOPSQL = (record) => {
     const query = `SELECT a.id , a.id_control, a.head_id, a.mainControl_id, a.text,
       'วัตถุประสงค์ของการควบคุม' as main_Obj, objectName, b.UserID
       FROM OTHER_OP as a
-      INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id 
-      WHERE b.UserID = ? AND b.OPSideID = ?
+      INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
+      INNER JOIN Users as c ON b.UserID = c.id
+      WHERE c.id = ? AND b.OPSideID = ?
       ORDER BY a.id`;
     pool.query(query, [record.userId, record.sideId], (err, results) => {
       if (err) {
@@ -281,8 +293,9 @@ const fnGetResultOtherOPSubSQL = (record) => {
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
       INNER JOIN Result_QR as c ON a.ResultQRID = c.id
       INNER JOIN OTHER_OP as d ON a.OtherID = d.id
+      INNER JOIN Users as e ON b.UserID = e.id
       WHERE c.OtherID IS NOT NULL 
-      AND b.UserID = ? AND b.OPSideID = ?
+      AND c.id = ? AND b.OPSideID = ?
       ${conditionSpecific}
       ORDER BY a.id`;
     pool.query(query, [record.userId, record.sideId], (err, results) => {
@@ -304,7 +317,8 @@ const fnGetResultConQRSQL = (record) => {
     const query = `SELECT a.id, a.descConQR,  a.prefixAsessor, a.signPath, a.position, CAST(a.dateAsessor AS CHAR) as dateAsessor, b.UserID
       FROM Result_CON_QR as a 
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
-      WHERE b.UserID = ${record.userId} AND b.OPSideID = ${record.sideId}
+      INNER JOIN Users as c ON b.UserID = c.id
+      WHERE c.id = ${record.userId} AND b.OPSideID = ${record.sideId}
       ${conditionSpecific}
       ORDER BY a.id
     `;
@@ -359,11 +373,12 @@ const fnGetResultConASMSQL = (record) => {
 
 const fnGetResultPFMEVSQL = (record) => {
   return new Promise((resolve, reject) => {
-    const query = `SELECT a.id , a.ResultQRID, a.headRisk , a.objRisk, a.risking, a.activityControl, a.chanceRiskScore , a.effectRiskScore, a.rankRiskScore, a.improvementControl, b.UserID
+    const query = `SELECT a.id , a.ResultQRID, a.headRisk , a.objRisk, a.risking, a.activityControl, a.chanceRiskScore , a.effectRiskScore, a.rankRiskScore, a.improvementControl, c.UserID
       FROM Result_PFM_EV as a
-      INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
-      INNER JOIN Users as c ON b.UserID = c.id
-      WHERE c.id = ${record.userId} AND b.OPSideID = ${record.sideId}
+      INNER JOIN Result_QR as b ON a.ResultQRID = b.id
+      INNER JOIN Result_UserDoc as c ON b.ResultDocID = c.id
+      INNER JOIN Users as d ON c.UserID = d.id
+      WHERE d.id = ${record.userId} AND c.OPSideID = ${record.sideId}
       ORDER BY a.id
     `;
     pool.query(query, [record], (err, results) => {
@@ -378,7 +393,7 @@ const fnGetResultPFMEVSQL = (record) => {
 
 const fnGetResultConPFMEVSQL = (record) => {
   return new Promise((resolve, reject) => {
-    const query = `SELECT a.id, a.nameUnit, a.prefixAsessor, a.signPath, a.position, CAST(a.dateAsessor AS CHAR) as dateAsessor, b.UserID
+    const query = `SELECT a.id, a.nameUnit, a.prefixAsessor, a.signPath, a.position, CAST(a.dateAsessor AS CHAR) as dateAsessor, c.UserID
       FROM Result_CON_PFM_EV as a 
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
       INNER JOIN Users as c ON b.UserID = c.id
@@ -397,11 +412,15 @@ const fnGetResultConPFMEVSQL = (record) => {
 
 const fnGetResultChanceRiskSQL = (record) => {
   return new Promise((resolve, reject) => {
-    const query = `SELECT a.id, a.frequencyLV1, a.frequencyLV2, a.frequencyLV3, a.frequencyLV4, a.frequencyLV5, a.chanceRiskScore, b.UserID
+    const query = `SELECT a.id, a.frequencyLV1, a.frequencyLV2, a.frequencyLV3, a.frequencyLV4, a.frequencyLV5, a.chanceRiskScore, d.UserID
       FROM Result_ChanceRisk as a
-      INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
-      INNER JOIN Users as c ON b.UserID = c.id
-      WHERE a.ResultPFM_EV_ID = ${record.PFM_EVId} AND c.id = ${record.userId} AND b.OPSideID = ${record.sideId}
+      INNER JOIN Result_PFM_EV as b ON a.ResultPFM_EV_ID = b.id  
+      INNER JOIN Result_QR as c ON b.ResultQRID = c.id
+      INNER JOIN Result_UserDoc as d ON c.ResultDocID = d.id
+      INNER JOIN Users as e ON d.UserID = e.id
+      WHERE a.ResultPFM_EV_ID = ${record.PFM_EVId} 
+      AND e.id = ${record.userId} 
+      AND d.OPSideID = ${record.sideId}
     `;
     pool.query(query, [record], (err, results) => {
       if (err) {
@@ -415,11 +434,15 @@ const fnGetResultChanceRiskSQL = (record) => {
 
 const fnGetResultEffectRiskSQL = (record) => {
   return new Promise((resolve, reject) => {
-    const query = `SELECT a.id, a.damageLV1, a.damageLV2, a.damageLV3, a.damageLV4, a.damageLV5, a.effectRiskScore, b.UserID
+    const query = `SELECT a.id, a.damageLV1, a.damageLV2, a.damageLV3, a.damageLV4, a.damageLV5, a.effectRiskScore, d.UserID
       FROM Result_EffectRisk as a
-      INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
-      INNER JOIN Users as c ON b.UserID = c.id
-      WHERE a.ResultPFM_EV_ID = ${record.PFM_EVId} AND c.id = ${record.userId} AND b.OPSideID = ${record.sideId}
+      INNER JOIN Result_PFM_EV as b ON a.ResultPFM_EV_ID = b.id  
+      INNER JOIN Result_QR as c ON b.ResultQRID = c.id
+      INNER JOIN Result_UserDoc as d ON c.ResultDocID = d.id
+      INNER JOIN Users as e ON d.UserID = e.id
+      WHERE a.ResultPFM_EV_ID = ${record.PFM_EVId} 
+      AND e.id = ${record.userId} 
+      AND d.OPSideID = ${record.sideId}
     `;
     pool.query(query, [record], (err, results) => {
       if (err) {
@@ -483,11 +506,12 @@ const fnGetResultHighRiskSQL = (record) => {
     }
     const query = `SELECT a.id, a.ResultQRID, a.headRisk, a.objRisk, a.risking, a.existingControl, a.evaluationControl,
       a.existingRisk, a.improvementControl, a.responsibleAgency,a.progressControl, a.solutionsControl,
-      b.UserID, b.OPSideID
+      c.UserID, c.OPSideID
       FROM Result_High_Risk as a
-      INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
-      INNER JOIN Users as c ON b.UserID = c.id
-      WHERE c.id = ${record.userId}
+      INNER JOIN Result_QR as b ON a.ResultQRID = b.id
+      INNER JOIN Result_UserDoc as c ON b.ResultDocID = c.id
+      INNER JOIN Users as d ON c.UserID = d.id
+      WHERE d.id = ${record.userId}
       ${conditionYear}
       ${conditionIdQR}
       ORDER BY a.id 

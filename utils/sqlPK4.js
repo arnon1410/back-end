@@ -4,13 +4,13 @@ const pool = mysql.createPool(config);
 
 const fnUpdateFormPK4SQL = (data) => {
     return new Promise((resolve, reject) => {
-      if (!data || !data.descResultPK4 || !data.username || !data.idPK4 || !data.userId) {
+      if (!data || !data.descResultPK4 || !data.username || !data.idPK4 || !data.userDocId) {
         return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
       }
         const query = `
           UPDATE Result_PK4 SET descResultPK4 = ?, updatedBy = ? WHERE id = ? AND ResultDocID = ? 
         `;
-        const params = [data.descResultPK4, data.username, data.idPK4, data.userId];
+        const params = [data.descResultPK4, data.username, data.idPK4, data.userDocId];
         pool.query(query, params, (err, result) => {
           if (err) {
               // ส่งข้อความข้อผิดพลาดที่ชัดเจน
@@ -24,13 +24,13 @@ const fnUpdateFormPK4SQL = (data) => {
 
 const fnUpdateConPK4SQL = (data) => {
     return new Promise((resolve, reject) => {
-      if (!data || !data.descResultConPK4 || !data.username || !data.idConPK4 || !data.userId) {
+      if (!data || !data.descResultConPK4 || !data.username || !data.idConPK4 || !data.userDocId) {
         return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
       }
         const query = `
           UPDATE Result_CON_PK4 SET descConPK4 = ?, updatedBy = ? WHERE id = ? AND ResultDocID = ? 
         `;
-        const params = [data.descResultConPK4, data.username, data.idConPK4, data.userId];
+        const params = [data.descResultConPK4, data.username, data.idConPK4, data.userDocId];
         pool.query(query, params, (err, result) => {
           if (err) {
               // ส่งข้อความข้อผิดพลาดที่ชัดเจน
@@ -38,6 +38,29 @@ const fnUpdateConPK4SQL = (data) => {
           } else {
               resolve(result);
           }
+        });
+    });
+};
+
+const fnInsertConPK4SQL = (data) => {
+    return new Promise((resolve, reject) => {
+        // ตรวจสอบว่า data มีค่าที่ต้องการ
+        if (!data || !data.userDocId || !data.descResultConPK4 || !data.username) {
+            return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
+        }
+        const query = `
+          INSERT INTO Result_CON_PK4 (ResultDocID, descConPK4, createdBy, updatedBy, isActive) 
+          VALUES (?, ?, ?, ?, 1)
+        `;
+        const params = [parseInt(data.userDocId, 10), data.descResultConPK4, data.username, data.username];
+  
+        pool.query(query, params, (err, result) => {
+            if (err) {
+                // ส่งข้อความข้อผิดพลาดที่ชัดเจน
+                reject(new Error(`เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล: ${err.message}`));
+            } else {
+                resolve(result.insertId);
+            }
         });
     });
 };
@@ -67,14 +90,14 @@ const fnUpdateStatusDocPK4SQL = (data) => {
 const fnUpdateDataSignaturePK4SQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.signPath || !data.username , !data.userId) {
+        if (!data || !data.signPath || !data.username , !data.userDocId) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
             UPDATE Result_CON_PK4 SET signPath = ?, updatedBy = ? 
             WHERE id = ? AND ResultDocID = ?
         `;
-        const params = [data.signPath, data.username, data.idConPK4 , data.userId];
+        const params = [data.signPath, data.username, data.idConPK4 , data.userDocId];
   
         pool.query(query, params, (err, result) => {
             if (err) {
@@ -90,21 +113,21 @@ const fnUpdateDataSignaturePK4SQL = (data) => {
 const fnInsertDataSignaturePK4SQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.userId || !data.signPath || !data.username) {
+        if (!data || !data.userDocId || !data.signPath || !data.username) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
           INSERT INTO Result_CON_PK4 (ResultDocID, signPath, createdBy, updatedBy, isActive) 
           VALUES (?, ?, ?, ?, 1)
         `;
-        const params = [parseInt(data.userId, 10), data.signPath, data.username, data.username];
+        const params = [parseInt(data.userDocId, 10), data.signPath, data.username, data.username];
   
         pool.query(query, params, (err, result) => {
             if (err) {
                 // ส่งข้อความข้อผิดพลาดที่ชัดเจน
                 reject(new Error(`เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล: ${err.message}`));
             } else {
-                resolve(result);
+                resolve(result.insertId);
             }
         });
     });
@@ -113,14 +136,14 @@ const fnInsertDataSignaturePK4SQL = (data) => {
 const fnUpdateDataAssessorPK4SQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.prefixAsessor || !data.position || !data.dateAsessor || !data.username , !data.userId) {
+        if (!data || !data.prefixAsessor || !data.position || !data.dateAsessor || !data.username , !data.userDocId) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
             UPDATE Result_CON_PK4 SET prefixAsessor = ?, position = ?, dateAsessor = ?, updatedBy = ? 
             WHERE id = ? AND ResultDocID = ?
         `;
-        const params = [data.prefixAsessor, data.position, data.dateAsessor, data.username, data.idConPK4 , data.userId];
+        const params = [data.prefixAsessor, data.position, data.dateAsessor, data.username, data.idConPK4 , data.userDocId];
   
         pool.query(query, params, (err, result) => {
             if (err) {
@@ -136,21 +159,21 @@ const fnUpdateDataAssessorPK4SQL = (data) => {
 const fnInsertDataAssessorPK4SQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.userId || !data.prefixAsessor || !data.position || !data.dateAsessor || !data.username) {
+        if (!data || !data.userDocId || !data.prefixAsessor || !data.position || !data.dateAsessor || !data.username) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
           INSERT INTO Result_CON_PK4 (ResultDocID, prefixAsessor, position, dateAsessor, createdBy, updatedBy, isActive) 
           VALUES (?, ?, ?, ?, ?, ?, 1)
         `;
-        const params = [parseInt(data.userId, 10), data.prefixAsessor, data.position, data.dateAsessor, data.username, data.username];
+        const params = [parseInt(data.userDocId, 10), data.prefixAsessor, data.position, data.dateAsessor, data.username, data.username];
   
         pool.query(query, params, (err, result) => {
             if (err) {
                 // ส่งข้อความข้อผิดพลาดที่ชัดเจน
                 reject(new Error(`เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล: ${err.message}`));
             } else {
-                resolve(result);
+                resolve(result.insertId);
             }
         });
     });
@@ -159,6 +182,7 @@ const fnInsertDataAssessorPK4SQL = (data) => {
 module.exports = {
   fnUpdateFormPK4SQL,
   fnUpdateConPK4SQL,
+  fnInsertConPK4SQL,
   fnUpdateStatusDocPK4SQL,
   fnUpdateDataSignaturePK4SQL,
   fnInsertDataSignaturePK4SQL,
