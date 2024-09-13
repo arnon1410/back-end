@@ -10,15 +10,14 @@ const fnUpdateFormPKF5SQL = (data) => {
         const query = `
             UPDATE Result_High_Risk 
             SET progressControl = ?, solutionsControl = ?, updatedBy = ?
-            WHERE id = ? AND ResultDocID = ?
+            WHERE id = ?
         `;
         
         const params = [
             data.progressControl,
             data.solutionsControl,
             data.username,
-            data.idPKF5,
-            data.userDocId
+            data.idPKF5
         ];
         pool.query(query, params, (err, result) => {
           if (err) {

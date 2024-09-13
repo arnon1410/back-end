@@ -64,14 +64,16 @@ const fnSetFormAssessment = async (req, res) => {
 
         let updateSuccess = true;
 
+        let resultVal = 'success';  // เริ่มต้นค่าเป็น 'success' โดยค่า default
+
         for (const data of dataArray) {
             let result;
 
             if (data.idASM) {
                 result = await fnUpdateFormAssessmentSQL(data);
-            } else if (data.idConASM  && data.descResultConASM) {
+            } else if (data.idConASM && data.descResultConASM) {
                 result = await fnUpdateConAssessmentSQL(data);
-            } else if (!data.idConPK4 && data.descResultConASM) {
+            } else if (!data.idConASM && data.descResultConASM) {
                 result = await fnInsertConAssessmentSQL(data);
             } else {
                 // กรณีไม่มีทั้ง idASM และ idConASM
@@ -83,17 +85,20 @@ const fnSetFormAssessment = async (req, res) => {
                 updateSuccess = false;
                 break; // หยุดการวนลูปหากเกิดข้อผิดพลาด
             }
+
+            // ตรวจสอบเงื่อนไขและเก็บค่า resultVal ทันทีในลูปแรก
+            if (!data.idConASM && data.descResultConASM) {
+                resultVal = result;  // เก็บค่าผลลัพธ์และออกจากลูป
+            }
         }
 
         if (updateSuccess) {
             await fnUpdateStatusDocASMSQL(dataArray[0]); // อัปเดตสถานะเอกสารเมื่ออัปเดตข้อมูลเสร็จสิ้นแล้ว
             console.log('UpdateStatusDoc : Success');
-            if (!data.idConPK4 && data.descResultConASM) {
-                res.status(200).json({ result: result });
-            } else {
-                res.status(200).json({ result: 'success' });
-            }
-           
+
+            // ส่งค่า resultVal ซึ่งอัปเดตในลูปแรกแล้ว
+            res.status(200).json({ result: resultVal });
+
         } else {
             res.status(500).json({ error: 'Failed to update all records', status: 'error' });
         }

@@ -10,7 +10,7 @@ const fnUpdateFormPK5SQL = (data) => {
         const query = `
             UPDATE Result_High_Risk 
             SET evaluationControl = ?, existingRisk = ?, responsibleAgency = ?, updatedBy = ?
-            WHERE id = ? AND ResultDocID = ?
+            WHERE id = ?
         `;
         
         const params = [
@@ -18,8 +18,7 @@ const fnUpdateFormPK5SQL = (data) => {
             data.existingRisk,
             data.responsibleAgency,
             data.username,
-            data.idPK5,
-            data.userDocId
+            data.idPK5
         ];
         pool.query(query, params, (err, result) => {
           if (err) {

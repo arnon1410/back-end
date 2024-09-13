@@ -22,9 +22,12 @@ const fnSetFormPK4 = async (req, res) => {
 
         let updateSuccess = true;
 
+        let resultVal = 'success';
+
         for (const data of dataArray) {
             let result;
 
+            // ตรวจสอบเงื่อนไขและอัปเดตข้อมูล
             if (data.idPK4) {
                 result = await fnUpdateFormPK4SQL(data);
             } else if (data.idConPK4 && data.descResultConPK4) {
@@ -37,20 +40,25 @@ const fnSetFormPK4 = async (req, res) => {
                 break;
             }
 
+            // หากการอัปเดตไม่สำเร็จ หยุดลูป
             if (!result) {
                 updateSuccess = false;
-                break; // หยุดการวนลูปหากเกิดข้อผิดพลาด
+                break;
+            }
+
+            // ตรวจสอบเงื่อนไขของ `idConPK4` และ `descResultConPK4`
+            if (!data.idConPK4 && data.descResultConPK4) {
+                resultVal = result;  // เก็บค่า result และออกจากลูป
+                break;
             }
         }
 
         if (updateSuccess) {
-            await fnUpdateStatusDocPK4SQL(dataArray[0]); // อัปเดตสถานะเอกสารเมื่ออัปเดตข้อมูลเสร็จสิ้นแล้ว
+            await fnUpdateStatusDocPK4SQL(dataArray[0]); // อัปเดตสถานะเอกสาร
             console.log('UpdateStatusDoc : Success');
-            if (!data.idConPK4 && data.descResultConPK4) {
-                res.status(200).json({ result: result });
-            } else {
-                res.status(200).json({ result: 'success' });
-            }
+            
+            // ส่งค่า resultVal เป็น response
+            res.status(200).json({ result: resultVal });
         } else {
             res.status(500).json({ error: 'Failed to update all records', status: 'error' });
         }

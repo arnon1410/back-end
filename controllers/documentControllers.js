@@ -89,6 +89,10 @@ const fnGetResultDoc = async (req, res) => {
   try {
     console.log("/api/documents/fnGetResultDoc");
     const resultDoc = await fnGetResultDocSQL(data);
+
+    if (resultDoc === null) {
+        return res.status(200).json({ result: [] });
+    }
       
     if (resultDoc && resultDoc.length > 0) {
         const combinedData = resultDoc.map(resDoc => ({

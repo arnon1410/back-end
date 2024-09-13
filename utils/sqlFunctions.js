@@ -497,7 +497,7 @@ const fnGetResultHighRiskSQL = (record) => {
     var conditionYear = ''
     var conditionIdQR = ''
     if (record.strYear) {
-      conditionYear = `AND b.year = ${record.strYear}`
+      conditionYear = `AND c.year = ${record.strYear}`
     }
     if (record.idQR) { // กรณีที่ UPDATE 
       conditionIdQR = `AND a.ResultQRID = ${record.idQR}`
@@ -515,7 +515,7 @@ const fnGetResultHighRiskSQL = (record) => {
       ${conditionYear}
       ${conditionIdQR}
       ORDER BY a.id 
-    `;
+    `; // แก้คิวรีให้ order by ตาม ชื่อด้านต่าง ๆ
     pool.query(query, [record], (err, results) => {
       if (err) {
         reject(err);
