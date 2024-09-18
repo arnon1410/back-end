@@ -206,7 +206,8 @@ const fnGetResultQR = async (req, res) => {
               fileSave: resSQL.fileSave,
               filePath: resSQL.filePath,
               descResultQR: resSQL.descResultQR,
-              UserID: resSQL.UserID
+              UserID: resSQL.UserID,
+              description: resSQL.resultNo
             }));
             res.status(200).json({ result: result });
       } else {

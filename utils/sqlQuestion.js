@@ -5,7 +5,7 @@ const pool = mysql.createPool(config);
 const fnUpdateResultQRSQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.checkbox || !data.descResultQR || !data.username || !data.idQR) {
+        if (!data || !data.checkbox || !data.username || !data.idQR) {
           return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
@@ -13,7 +13,6 @@ const fnUpdateResultQRSQL = (data) => {
         `;
         const params = [data.checkbox , data.descResultQR , data.username, data.idQR];
         pool.query(query, params, (err, result) => {
-            console.log(query)
           if (err) {
               // ส่งข้อความข้อผิดพลาดที่ชัดเจน
               reject(new Error(`เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล: ${err.message}`));
@@ -25,7 +24,6 @@ const fnUpdateResultQRSQL = (data) => {
   };
   
   const fnUpdateResultOPMSQL = (data) => {
-    console.log(data)
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
         if (!data || !data.headName || !data.objName || !data.descResultQR || !data.username || !data.userDocId || !data.idQR) {
@@ -111,7 +109,6 @@ const fnUpdateResultQRSQL = (data) => {
                     }
 
                     const strOPM_ID = resultOPM.insertId; // เก็บค่า id ที่ได้จากการ insert ลง OPM
-                    // console.log('Insert ID from OPM:', strOPM_ID);
 
                     const queryPFM_EV = `
                         INSERT INTO Result_PFM_EV (ResultQRID, OPM_ID, headRisk, objRisk, risking, createdBy, updatedBy, isActive)
@@ -291,7 +288,6 @@ const fnUpdateResultQRSQL = (data) => {
   const fnInsertResultConQRSQL = (data) => { // nameUnit ยังไม่ส่งมา
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        console.log(data)
         if (!data.userDocId || !data.descConQR || !data.username) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
@@ -453,11 +449,10 @@ const fnUpdateResultQRSQL = (data) => {
                                             const strIdOPM = result5.insertId;
   
                                             const query6 = `
-                                                INSERT INTO Result_PFM_EV (ResultDocID, ResultQRID, OPM_ID, headRisk, objRisk, risking, createdBy, updatedBy, isActive)
-                                                VALUES (?, ?, ?, ?, ?, ?, ?, ? ,1)
+                                                INSERT INTO Result_PFM_EV (ResultQRID, OPM_ID, headRisk, objRisk, risking, createdBy, updatedBy, isActive)
+                                                VALUES (?, ?, ?, ?, ?, ?, ? ,1)
                                             `;
                                             const params6 = [
-                                                parseInt(paramsSet.params6[0], 10), 
                                                 parseInt(strIdQR, 10), 
                                                 parseInt(strIdOPM, 10), 
                                                 paramsSet.params6[1], 

@@ -119,7 +119,7 @@ const fnGetResultQRSQL = (record) => {
     conditionSpecific = `AND a.id = ${record.idQR}`
   }
   return new Promise((resolve, reject) => {
-    const query = `SELECT a.id , a.checkbox, a.descResultQR, b.UserID, d.fileName
+    const query = `SELECT a.id , a.checkbox, a.descResultQR, a.resultNo, b.UserID, d.fileName
       FROM Result_QR as a 
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
       INNER JOIN Users as c ON b.UserID = c.id
@@ -159,28 +159,6 @@ const fnGetResultOPMSQL = (record) => {
   });
 };
 
-// const fnGetResultPFM_EVSQL = (record) => {
-//   return new Promise((resolve, reject) => {
-//     const query = `SELECT id, headRisk, objRisk, risking FROM Result_PFM_EV 
-//       WHERE ResultDocID = ? 
-//       AND ResultQRID = ? 
-//       AND isActive = 1
-//       AND YEAR(updatedAt) = YEAR(CURDATE())
-//     `;
-
-//     const params = [record.userId, record.idQR];
-    
-//     pool.query(query, params, (err, results) => {
-//       if (err) {
-//         reject(new Error(`SQL Error: ${err.message}`));
-//       } else {
-//         resolve(results.length ? results : null);
-//       }
-//     });
-//   });
-// };
-
-
 const fnGetResultEndQRSQL = (record) => {
   var conditionOther = ''
   var conditionIdEndQR = ''
@@ -207,7 +185,7 @@ const fnGetResultEndQRSQL = (record) => {
       ${conditionOther}
       ${conditionIdEndQR}
       ${conditionIdHead}
-      ORDER BY a.id
+      ORDER BY head_id
     `;
     pool.query(query, [record], (err, results) => {
       if (err) {
@@ -222,7 +200,7 @@ const fnGetResultEndQRSQL = (record) => {
 const fnUpdateResultEndQRSQL = (data) => {
   return new Promise((resolve, reject) => {
       // ตรวจสอบว่า data มีค่าที่ต้องการ
-      if (!data.radio || !data.descResultEndQR || !data.username || !data.idEndQR) {
+      if (!data.radio || !data.username || !data.idEndQR) {
         return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
       }
       const query = `
@@ -243,7 +221,7 @@ const fnUpdateResultEndQRSQL = (data) => {
 const fnInsertResultEndQRSQL = (data) => {
   return new Promise((resolve, reject) => {
       // ตรวจสอบว่า data มีค่าที่ต้องการ
-      if (!data || !data.userDocId || !data.head_id || !data.descResultEndQR || !data.username) {
+      if (!data || !data.userDocId || !data.head_id  || !data.username) {
           return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
       }
       const query = `

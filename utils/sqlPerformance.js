@@ -174,7 +174,7 @@ const pool = mysql.createPool(config);
         const activityControl = data.activityControl !== undefined && data.activityControl !== "" ? data.activityControl : null;
         const improvementControl = data.improvementControl !== undefined && data.improvementControl !== "" ? data.improvementControl : null;
         let isActive =  '1'
-        if (data.rankRiskScore < 8) {
+        if (data.rankRiskScore < 10) {
             isActive =  '0'
         } 
         

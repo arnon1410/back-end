@@ -226,7 +226,7 @@ const fnSetChanceRiskModal = async (req, res) => {
                     console.log('fnUpdateResultHighRiskSQL')
                     await fnUpdateResultHighRiskSQL(data);
                 } else {
-                    if  (rankRiskScore >= 8) {
+                    if  (rankRiskScore >= 10) {
                         console.log('fnInsertResultHighRiskSQL')
                         await fnInsertResultHighRiskSQL(data);
                     }
@@ -285,7 +285,7 @@ const fnSetEffectRiskModal = async (req, res) => {
                     
                     if (resultHighRisk) {
                         await fnUpdateResultHighRiskSQL(data);
-                    } else if (rankRiskScore >= 8) {
+                    } else if (rankRiskScore >= 10) {
                         await fnInsertResultHighRiskSQL(data);
                     }
                 }

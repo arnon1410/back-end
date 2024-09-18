@@ -95,7 +95,6 @@ const fnProcessMainQR = async (fields) => {
         console.log('fnProcessMainQR')
         const resultQR = await fnGetResultQRSQL(fields);
         let resultQROld = { data: [] }; // กำหนดค่าเริ่มต้นเป็นอ็อบเจกต์ที่มี data เป็นอาร์เรย์ว่าง
-
         if (resultQR && resultQR.length > 0) {
             resultQROld = {
                 data: resultQR.map(resSQL => ({
@@ -160,7 +159,7 @@ const fnProcessMainEndQR = async (fields) => {
         console.log('fnProcessMainEndQR')
         const resultEndQR = await fnGetResultEndQRSQL(fields);
         let resultEndQROld = { data: [] }; // กำหนดค่าเริ่มต้นเป็นอ็อบเจกต์ที่มี data เป็นอาร์เรย์ว่าง
-
+        console.log(resultEndQROld)
         if (resultEndQR && resultEndQR.length > 0) {
             resultEndQROld = {
                 data: resultEndQR.map(resSQL => ({
@@ -175,7 +174,6 @@ const fnProcessMainEndQR = async (fields) => {
                 resultEndQROld.data[0].radioOld === fields.radio &&
                 resultEndQROld.data[0].descResultEndQROld === fields.descResultEndQR;
             // ถ้าไม่เท่ากัน ให้คอลฟังก์ชัน fnUpdateResultEndQRSQL
-            console.log(fields)
             if (!isEqualQR) {
                 await fnUpdateResultEndQRSQL(fields);
                 console.log('UpdateResultEndQR : Success');
@@ -234,14 +232,14 @@ const fnProcessConQR = async (fields) => {
         const resultConQR = await fnGetResultConQRSQL(fields);
         let resultConQRStatus = { data: [] }; // กำหนดค่าเริ่มต้นเป็นอ็อบเจกต์ที่มี data เป็นอาร์เรย์ว่าง
 
-        if (resultConQR && resultConQR.length > 0) {
-            // อาจจะไม่มีการ check ตัว descConQR เนื่องจากจะทำให้โค้ดช้าเพราะเป็นการเปรียบเทียบของสตริงที่มีขนาดยาวมาก
-            await fnUpdateResultConQRSQL(fields);
-            console.log('UpdateResultConQR : Success');
-        } else { // กรณีที่ insert จะมีแค่ข้อมูลจาก main เท่านั้นเนื่องจาก other จะมี id อยู่แล้ว
-            await fnInsertResultConQRSQL(fields);
-            console.log('InsertResultConQR : Success');
-        } 
+        // if (resultConQR && resultConQR.length > 0) {
+        //     // อาจจะไม่มีการ check ตัว descConQR เนื่องจากจะทำให้โค้ดช้าเพราะเป็นการเปรียบเทียบของสตริงที่มีขนาดยาวมาก
+        //     await fnUpdateResultConQRSQL(fields);
+        //     console.log('UpdateResultConQR : Success');
+        // } else { // กรณีที่ insert จะมีแค่ข้อมูลจาก main เท่านั้นเนื่องจาก other จะมี id อยู่แล้ว
+        //     await fnInsertResultConQRSQL(fields);
+        //     console.log('InsertResultConQR : Success');
+        // } 
 
         return resultConQRStatus.data; // ส่งค่ากลับเป็นอาร์เรย์ที่มีข้อมูลที่ต้องการ
     } catch (error) {

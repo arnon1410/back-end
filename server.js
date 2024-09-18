@@ -26,7 +26,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/documents", documentRoutes, setQuestion, setAssessment, setPerformance, setPK4, setPK5, setPKF5);
 app.use("/api/user", userRoutes);
 app.use("/api/store", fileRoutes);
-// app.use("api/documents", );
 
 connectDB();
 
