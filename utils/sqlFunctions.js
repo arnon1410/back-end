@@ -312,7 +312,7 @@ const fnGetResultConQRSQL = (record) => {
 
 const fnGetResultASMSQL = (record) => {
   return new Promise((resolve, reject) => {
-    const query = `SELECT a.id, a.ResultDocID, a.descResultASM, b.UserID
+    const query = `SELECT a.id, a.ResultDocID, a.descResultASM, a.resultNo, b.UserID
       FROM Result_ASM as a 
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
       INNER JOIN Users as c ON b.UserID = c.id
@@ -434,7 +434,7 @@ const fnGetResultEffectRiskSQL = (record) => {
 
 const fnGetResultPK4SQL = (record) => {
   return new Promise((resolve, reject) => {
-    const query = `SELECT a.id, a.ResultDocID, a.descResultPK4 , b.UserID
+    const query = `SELECT a.id, a.ResultDocID, a.descResultPK4 , b.UserID, c.shortName
       FROM Result_PK4 as a
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
       INNER JOIN Users as c ON b.UserID = c.id
@@ -484,11 +484,12 @@ const fnGetResultHighRiskSQL = (record) => {
     }
     const query = `SELECT a.id, a.ResultQRID, a.headRisk, a.objRisk, a.risking, a.existingControl, a.evaluationControl,
       a.existingRisk, a.improvementControl, a.responsibleAgency,a.progressControl, a.solutionsControl,
-      c.UserID, c.OPSideID
+      c.UserID, c.OPSideID, e.OPSideName
       FROM Result_High_Risk as a
       INNER JOIN Result_QR as b ON a.ResultQRID = b.id
       INNER JOIN Result_UserDoc as c ON b.ResultDocID = c.id
       INNER JOIN Users as d ON c.UserID = d.id
+      INNER JOIN OP_Sides e ON c.OPSideID = e.id
       WHERE d.id = ${record.userId}
       ${conditionYear}
       ${conditionIdQR}
@@ -504,12 +505,43 @@ const fnGetResultHighRiskSQL = (record) => {
   });
 };
 
-const fnGetResultPK5FixSQL = (record) => {
+const fnGetResultImprovePK4SQL = (record) => {
+  var conditionYear = ''
+  if (record.strYear) {
+    conditionYear = `AND b.year = ${record.strYear}`
+  }
   return new Promise((resolve, reject) => {
-    const query = `SELECT a.id, a.responsibleAgency, b.UserID
-      FROM Result_PK5_Fix as a
+    const query = `	SELECT  a.*, b.UserID
+      FROM Result_End_QR as a 
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
       INNER JOIN Users as c ON b.UserID = c.id
+      INNER JOIN (
+     	  SELECT H.*, Q.id AS Q_id 
+        FROM Result_High_Risk H 
+     	  INNER JOIN Result_QR Q ON H.ResultQRID = Q.id
+      ) E ON a.ResultDocID = Q_id
+	    WHERE a.descResultEndQR IS NOT NULL AND a.descResultEndQR <> ''
+      AND c.id = ${record.userId}
+      ${conditionYear}
+      ORDER BY a.head_id
+    `;
+    pool.query(query, [record], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results.length ? results : null);
+      }
+    });
+  });
+};
+
+const fnGetResultPK5FixSQL = (record) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT a.id, a.headRisk, a.objRisk, a.risking, a.improvementControl, a.responsibleAgency, a.progressControl, a.solutionsControl ,b.id as UserID, c.OPSideName , c.id as OPSideID
+      FROM Result_PK5_Fix as a
+      INNER JOIN Users as b ON a.UserID = b.id
+      INNER JOIN OP_Sides as c ON a.OPSideID = c.id
       WHERE c.id = ${record.userId}
       ORDER BY a.id
     `;
@@ -578,6 +610,28 @@ const fnGetUserControlSQL = (record) => {
   });
 };
 
+const fnGetResultCaseRiskSQL = (record) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT a.id, a.OPM_Desc, b.UserID
+      FROM OPM as a
+      INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
+      INNER JOIN Users as c ON b.UserID = c.id
+      WHERE c.id = ${record.userId} AND b.OPSideID = ${record.sideId}
+      AND a.isActive = 1
+      ORDER BY a.id
+    `;
+    pool.query(query, [record], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results.length ? results : null);
+      }
+    });
+  });
+};
+
+
 const fnUpdateCommentForAdminSQL = (data) => {
   return new Promise((resolve, reject) => {
     if (!data || !data.idUserDoc || !data.username || !data.comment) {
@@ -643,6 +697,8 @@ module.exports = {
 
   fnGetResultASMSQL,
   fnGetResultConASMSQL,
+  fnGetResultCaseRiskSQL,
+
   fnGetResultPFMEVSQL,
   fnGetResultConPFMEVSQL,
   fnGetResultChanceRiskSQL,
@@ -650,6 +706,7 @@ module.exports = {
   fnGetResultPK4SQL,
   fnGetResultConPK4SQL,
   fnGetResultHighRiskSQL,
+  fnGetResultImprovePK4SQL,
   fnGetResultConPK5SQL,
   fnGetResultPK5FixSQL,
   fnGetResultConPKF5SQL,

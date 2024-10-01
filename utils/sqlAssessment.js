@@ -42,7 +42,7 @@ const fnInsertDataNameUnitASMSQL = (data) => {
               // ส่งข้อความข้อผิดพลาดที่ชัดเจน
               reject(new Error(`เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล: ${err.message}`));
           } else {
-              resolve(result);
+              resolve(result.insertId);
           }
       });
   });

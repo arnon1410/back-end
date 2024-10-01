@@ -232,14 +232,14 @@ const fnProcessConQR = async (fields) => {
         const resultConQR = await fnGetResultConQRSQL(fields);
         let resultConQRStatus = { data: [] }; // กำหนดค่าเริ่มต้นเป็นอ็อบเจกต์ที่มี data เป็นอาร์เรย์ว่าง
 
-        // if (resultConQR && resultConQR.length > 0) {
-        //     // อาจจะไม่มีการ check ตัว descConQR เนื่องจากจะทำให้โค้ดช้าเพราะเป็นการเปรียบเทียบของสตริงที่มีขนาดยาวมาก
-        //     await fnUpdateResultConQRSQL(fields);
-        //     console.log('UpdateResultConQR : Success');
-        // } else { // กรณีที่ insert จะมีแค่ข้อมูลจาก main เท่านั้นเนื่องจาก other จะมี id อยู่แล้ว
-        //     await fnInsertResultConQRSQL(fields);
-        //     console.log('InsertResultConQR : Success');
-        // } 
+        if (resultConQR && resultConQR.length > 0) {
+            // อาจจะไม่มีการ check ตัว descConQR เนื่องจากจะทำให้โค้ดช้าเพราะเป็นการเปรียบเทียบของสตริงที่มีขนาดยาวมาก
+            await fnUpdateResultConQRSQL(fields);
+            console.log('UpdateResultConQR : Success');
+        } else { // กรณีที่ insert จะมีแค่ข้อมูลจาก main เท่านั้นเนื่องจาก other จะมี id อยู่แล้ว
+            await fnInsertResultConQRSQL(fields);
+            console.log('InsertResultConQR : Success');
+        } 
 
         return resultConQRStatus.data; // ส่งค่ากลับเป็นอาร์เรย์ที่มีข้อมูลที่ต้องการ
     } catch (error) {

@@ -7,9 +7,12 @@ const {
     fnGetResultOtherOPSQL,
     fnGetResultOtherOPSubSQL,
 
-    fnGetResultConQRSQL, 
+    fnGetResultConQRSQL,
+
     fnGetResultASMSQL, 
-    fnGetResultConASMSQL, 
+    fnGetResultConASMSQL,
+    fnGetResultCaseRiskSQL,
+
     fnGetResultPFMEVSQL,
     fnGetResultConPFMEVSQL,
     fnGetResultChanceRiskSQL,
@@ -17,6 +20,7 @@ const {
     fnGetResultPK4SQL,
     fnGetResultConPK4SQL,
     fnGetResultHighRiskSQL,
+    fnGetResultImprovePK4SQL,
     fnGetResultConPK5SQL,
     fnGetResultPK5FixSQL,
     fnGetResultConPKF5SQL,
@@ -409,6 +413,7 @@ const fnGetResultASM = async (req, res) => {
             const result = resultASM.map(resSQL => ({
                 id: resSQL.id,
                 descResultASM: resSQL.descResultASM,
+                resultNo: resSQL.resultNo,
                 UserID: resSQL.UserID
             }));
             res.status(200).json({ result: result });
@@ -677,6 +682,7 @@ const fnGetResultPK4 = async (req, res) => {
             const result = resultPK4.map(resSQL => ({
                 id: resSQL.id,
                 descResultPK4: resSQL.descResultPK4,
+                shortName: resSQL.shortName,
                 UserID: resSQL.UserID
             }));
             res.status(200).json({ result: result });
@@ -759,6 +765,7 @@ const fnGetResultHighRisk = async (req, res) => {
             const result = resultHighRisk.map(resSQL => ({
                 id: resSQL.id,
                 idSides: resSQL.OPSideID,
+                sideName: resSQL.OPSideName,
                 headRisk: resSQL.headRisk,
                 objRisk: resSQL.objRisk,
                 risking: resSQL.risking,
@@ -770,6 +777,45 @@ const fnGetResultHighRisk = async (req, res) => {
                 responsibleAgency: resSQL.responsibleAgency,
                 progressControl: resSQL.progressControl,
                 solutionsControl: resSQL.solutionsControl,
+                UserID: resSQL.UserID
+            }));
+            res.status(200).json({ result: result });
+        } else {
+        res.status(404).json({ 
+            message: "Data not found",
+        });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message, status: 'error' });
+    }
+};
+
+const fnGetResultImprovePK4 = async (req, res) => {
+    const { userId , strYear} = req.body;
+    
+    const data = {
+        userId,
+        strYear
+    };
+    
+    if (!userId) {
+        res
+        .status(400)
+        .json({ error: "userId or sideId fields cannot be empty!" });
+        return;
+    }
+    
+    try {
+        console.log("/api/documents/fnGetResultImprovePK4");
+        const resultImprovePK4 = await fnGetResultImprovePK4SQL(data);
+        if (resultImprovePK4 === null) {
+            return res.status(200).json({ result: [] });
+        }
+
+        if (resultImprovePK4 && resultImprovePK4.length > 0) {
+            const result = resultImprovePK4.map(resSQL => ({
+                id: resSQL.id,
+                descResultEndQR: resSQL.descResultEndQR,
                 UserID: resSQL.UserID
             }));
             res.status(200).json({ result: result });
@@ -808,7 +854,15 @@ const fnGetResultPK5Fix = async (req, res) => {
         if (resultPK5Fix && resultPK5Fix.length > 0) {
             const result = resultPK5Fix.map(resSQL => ({
                 id: resSQL.id,
+                idSides: resSQL.OPSideID,
+                sideName: resSQL.OPSideName,
+                headRisk: resSQL.headRisk,
+                objRisk: resSQL.objRisk,
+                risking: resSQL.risking,
+                improvementControl: resSQL.improvementControl,
                 responsibleAgency: resSQL.responsibleAgency,
+                progressControl: resSQL.progressControl,
+                solutionsControl: resSQL.solutionsControl,
                 UserID: resSQL.UserID
             }));
             res.status(200).json({ result: result });
@@ -907,6 +961,46 @@ const fnGetResultConPKF5 = async (req, res) => {
     }
 };
 
+const fnGetResultCaseRisk = async (req, res) => {
+    const { userId, sideId } = req.body;
+    
+    const data = {
+        userId,
+        sideId
+    };
+    
+    if (!userId || !sideId) {
+        res
+        .status(400)
+        .json({ error: "userId or sideId fields cannot be empty!" });
+        return;
+    }
+    
+    try {
+        console.log("/api/documents/fnGetResultCaseRisk");
+        const resultCaseRisk = await fnGetResultCaseRiskSQL(data);
+
+        if (resultCaseRisk === null) {
+            return res.status(200).json({ result: [] });
+        }
+        
+        if (resultCaseRisk && resultCaseRisk.length > 0) {
+            const result = resultCaseRisk.map(resSQL => ({
+                id: resSQL.id,
+                OPM_Desc: resSQL.OPM_Desc,
+                UserID: resSQL.UserID
+            }));
+            res.status(200).json({ result: result });
+        } else {
+        res.status(404).json({ 
+            message: "Data not found",
+        });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message, status: 'error' });
+    }
+};
+
 module.exports = {
     fnUpdateCommentForAdmin,
     fnGetResultDoc,
@@ -917,6 +1011,7 @@ module.exports = {
     fnGetResultConQR,
     fnGetResultASM,
     fnGetResultConASM,
+    fnGetResultCaseRisk,
     fnGetResultPFMEV,
     fnGetResultConPFMEV,
     fnGetResultChanceRisk,
@@ -924,6 +1019,7 @@ module.exports = {
     fnGetResultPK4,
     fnGetResultConPK4,
     fnGetResultHighRisk,
+    fnGetResultImprovePK4,
     fnGetResultPK5Fix,
     fnGetResultConPK5,
     fnGetResultConPKF5

@@ -40,7 +40,7 @@ const fnSetSideNameASM = async (req, res) => {
     } else {
         resultSetNameUnit = await fnInsertDataNameUnitASMSQL(data);
         if (resultSetNameUnit) {
-            res.status(200).json({ result: 'success' });
+            res.status(200).json({ result: resultSetNameUnit });
         } else {
             res.status(404).json({ message: "Data not found" });
         }

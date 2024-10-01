@@ -14,7 +14,7 @@ const fnUpdateFormPKF5SQL = (data) => {
         `;
         
         const params = [
-            data.progressControl,
+            parseInt(data.progressControl, 10),
             data.solutionsControl,
             data.username,
             data.idPKF5
@@ -143,11 +143,66 @@ const fnInsertDataAssessorPKF5SQL = (data) => {
     });
 };
 
+const fnUpdateFormPKF5FixSQL = (data) => {
+    return new Promise((resolve, reject) => {
+        // ตรวจสอบว่า data มีค่าที่ต้องการ
+        if (!data || !data.progressControl  || !data.solutionsControl || !data.username || !data.idPKF5 || !data.userDocId) {
+            return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
+          }
+            const query = `
+                UPDATE Result_PK5_Fix 
+                SET progressControl = ?, solutionsControl = ?, updatedBy = ?
+                WHERE id = ?
+            `;
+            const params = [
+                parseInt(data.progressControl, 10),
+                data.solutionsControl,
+                data.username,
+                data.idPKF5
+            ];
+  
+        pool.query(query, params, (err, result) => {
+            if (err) {
+                console.log(err)
+                // ส่งข้อความข้อผิดพลาดที่ชัดเจน
+                reject(new Error(`เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล: ${err.message}`));
+            } else {
+                resolve(result);
+            }
+        });
+    });
+};
+
+const fnInsertFormPKF5FixSQL = (data) => {
+    return new Promise((resolve, reject) => {
+        // ตรวจสอบว่า data มีค่าที่ต้องการ
+        if (!data || !data.userId || !data.sideId || !data.headRisk || !data.objRisk || !data.risking || !data.improvement || !data.agentcy || !data.progress || !data.solution  || !data.username) {
+            return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
+        }
+        const query = `
+          INSERT INTO Result_PK5_Fix (UserID, OPSideID, headRisk, objRisk, risking, improvementControl, responsibleAgency, progressControl, solutionsControl, createdBy, updatedBy, isActive) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+        `;
+        const params = [parseInt(data.userId, 10), parseInt(data.sideId, 10), data.headRisk, data.objRisk, data.risking, data.improvement, data.agentcy, data.progress, data.solution, data.username, data.username];
+  
+        pool.query(query, params, (err, result) => {
+            if (err) {
+                // ส่งข้อความข้อผิดพลาดที่ชัดเจน
+                reject(new Error(`เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล: ${err.message}`));
+            } else {
+                resolve(result.insertId);
+            }
+        });
+    });
+};
+
 module.exports = {
   fnUpdateFormPKF5SQL,
   fnUpdateStatusDocPKF5SQL,
   fnUpdateDataSignaturePKF5SQL,
   fnInsertDataSignaturePKF5SQL,
   fnUpdateDataAssessorPKF5SQL,
-  fnInsertDataAssessorPKF5SQL
+  fnInsertDataAssessorPKF5SQL,
+  fnUpdateFormPKF5FixSQL,
+  fnInsertFormPKF5FixSQL
 };

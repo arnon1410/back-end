@@ -49,7 +49,7 @@ const fnSetSideNamePFM = async (req, res) => {
     } else {
         resultSetNameUnit = await fnInsertDataNameUnitPFMSQL(data);
         if (resultSetNameUnit) {
-            res.status(200).json({ result: 'success' });
+            res.status(200).json({ result: resultSetNameUnit });
         } else {
             res.status(404).json({ message: "Data not found" });
         }
@@ -269,7 +269,7 @@ const fnSetEffectRiskModal = async (req, res) => {
         activityControl,
         improvementControl
     };
-  
+    console.log(data)
     if (!idPFM || !userId || !sideId || !username || !type || !damageLV1 || !damageLV2 || !damageLV3 || !damageLV4  || !damageLV5 || !effectRiskScore || !headRisk || !objRisk || !risking) {
         return res.status(400).json({ error: "some fields cannot be empty!" });
     }

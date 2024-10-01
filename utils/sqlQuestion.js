@@ -271,7 +271,7 @@ const fnUpdateResultQRSQL = (data) => {
           return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
-            UPDATE Result_Con_QR SET descConQR = ?, updatedBy = ? WHERE id = ?
+            UPDATE Result_CON_QR SET descConQR = ?, updatedBy = ? WHERE id = ?
         `;
         const params = [ data.descConQR , data.username, data.idConQR];
         pool.query(query, params, (err, result) => {
@@ -292,7 +292,7 @@ const fnUpdateResultQRSQL = (data) => {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
-          INSERT INTO Result_Con_QR (ResultDocID, descConQR, createdBy, updatedBy, isActive) VALUES (?, ?, ?, ?, 1)
+          INSERT INTO Result_CON_QR (ResultDocID, descConQR, createdBy, updatedBy, isActive) VALUES (?, ?, ?, ?, 1)
         `;
         const params = [parseInt(data.userDocId, 10), data.descConQR, data.username, data.username];
   
