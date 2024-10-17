@@ -78,7 +78,7 @@ const fnGetResultDocConditionSQL = (record) => {
       conditionUnitName = `AND b.id = ${record.unitId}`
     }
     if (record.status) {
-      conditionStatus = `AND e.OPStatusName = '${record.status}'`
+      conditionStatus = `AND a.OPStatusID = '${record.status}'`
     }
     const query = `SELECT 
         a.id,
@@ -357,7 +357,7 @@ const fnGetResultPFMEVSQL = (record) => {
       INNER JOIN Result_UserDoc as c ON b.ResultDocID = c.id
       INNER JOIN Users as d ON c.UserID = d.id
       WHERE d.id = ${record.userId} AND c.OPSideID = ${record.sideId}
-      ORDER BY a.id
+      ORDER BY a.ResultQRID
     `;
     pool.query(query, [record], (err, results) => {
       if (err) {
@@ -542,7 +542,7 @@ const fnGetResultPK5FixSQL = (record) => {
       FROM Result_PK5_Fix as a
       INNER JOIN Users as b ON a.UserID = b.id
       INNER JOIN OP_Sides as c ON a.OPSideID = c.id
-      WHERE c.id = ${record.userId}
+      WHERE b.id = ${record.userId}
       ORDER BY a.id
     `;
     pool.query(query, [record], (err, results) => {
@@ -631,6 +631,43 @@ const fnGetResultCaseRiskSQL = (record) => {
   });
 };
 
+const fnGetResultCollationSQL = (record) => {
+  var conditionUserDoc = ''
+  var conditionSendUser = ''
+  var conditionStatus = ''
+  if (record.userId) {
+    conditionUserDoc = `AND c.id = ${record.userId}`
+  }
+  if (record.sendId) {
+    conditionSendUser = `AND a.SendUserID = ${record.sendId}`
+  }
+  if (record.status) {
+    conditionStatus = `AND b.OPStatusID = '${record.status}'`
+  }
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT a.id , a.ResultDocID, a.SendUserID, a.fileName, a.fileData, b.OPStatusID, CAST(a.updatedAt AS CHAR) as updatedAt,
+      c.shortName as receiveName, d.shortName AS sendName, b.id as userDocID
+      FROM Result_Collation as a
+      INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
+      INNER JOIN Users as c ON b.UserID = c.id
+      INNER JOIN Users as d ON a.SendUserID = d.id
+      WHERE b.OPFormID = 1 AND a.isActive = 1
+      ${conditionUserDoc}
+      ${conditionSendUser}
+      ${conditionStatus}
+      ORDER BY a.id;
+    `;
+    pool.query(query, [record], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results.length ? results : null);
+      }
+    });
+  });
+};
+
 
 const fnUpdateCommentForAdminSQL = (data) => {
   return new Promise((resolve, reject) => {
@@ -662,6 +699,66 @@ const fnUpdateStatusDocAdminSQL = (data) => {
       `;
       const params = [data.username, data.idUserDoc];
       pool.query(query, params, (err, result) => {
+        if (err) {
+            // ส่งข้อความข้อผิดพลาดที่ชัดเจน
+            reject(new Error(`เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล: ${err.message}`));
+        } else {
+            resolve(result);
+        }
+      });
+  });
+};
+
+const fnCheckCollationFileDocPDFSQL = (record) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+        SELECT id, fileName, fileData 
+        FROM Result_Collation as a 
+        WHERE id = '${record.collationId}'
+    `;
+    pool.query(query, [record], (err, results) => {
+      console.log(query)
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results.length ? results[0] : null);
+      }
+    });
+  });
+};
+
+const fnUpdateCollationFileDocPDFSQL = (data) => {
+  return new Promise((resolve, reject) => {
+      if (!data || !data.fileName || !data.image || !data.username || !data.collationId) {
+        return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
+      }
+      const query = `
+          UPDATE Result_Collation SET fileName = ?, fileData = ?, updatedBy = ? WHERE id = ?
+      `;
+      const params = [data.fileName, Buffer.from(data.image, 'base64'), data.username , data.collationId];
+      pool.query(query, params, (err, result) => {
+        if (err) {
+            // ส่งข้อความข้อผิดพลาดที่ชัดเจน
+            reject(new Error(`เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล: ${err.message}`));
+        } else {
+            resolve(result);
+        }
+      });
+  });
+};
+
+const fnUpdateStatusDocCollationSQL = (data) => {
+  return new Promise((resolve, reject) => {
+    if (!data.username || !data.userDocId) {
+      return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
+    }
+      const query = `
+        UPDATE Result_UserDoc SET OPStatusID = 4, updatedBy = ? 
+        WHERE id = ? AND OPFormID = 1
+      `;
+      const params = [data.username, data.userDocId];
+      pool.query(query, params, (err, result) => {
+        console.log(query)
         if (err) {
             // ส่งข้อความข้อผิดพลาดที่ชัดเจน
             reject(new Error(`เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล: ${err.message}`));
@@ -711,5 +808,11 @@ module.exports = {
   fnGetResultPK5FixSQL,
   fnGetResultConPKF5SQL,
   fnGetUserControlSQL,
+
+  fnGetResultCollationSQL,
+
+  fnCheckCollationFileDocPDFSQL,
+  fnUpdateCollationFileDocPDFSQL,
+  fnUpdateStatusDocCollationSQL
 
 };

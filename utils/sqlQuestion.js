@@ -328,7 +328,7 @@ const fnUpdateResultQRSQL = (data) => {
     });
   };
 
-  const fnSetQuestionOtherSQL = (data) => { // แก้ไปใชข้เทเบิ้ลจริง
+  const fnSetQuestionOtherSQL = (data) => {
     return new Promise((resolve, reject) => {
         const query1 = `
             INSERT INTO OTHER_OP (ResultDocID, id_control, head_id, mainControl_id, text, objectName, createdBy, updatedBy, isActive)
@@ -464,7 +464,37 @@ const fnUpdateResultQRSQL = (data) => {
   
                                             connection.query(query6, params6, (err, result6) => {
                                                 if (err) return reject(`Result_PFM_EV: ${err.message}`);
-                                                resolve({ result3, result4, result5, result6 });
+                                                
+                                                // เพิ่ม query7 และ query8 หลังจาก query6
+                                                const query7 = `
+                                                    INSERT INTO Result_ChanceRisk (ResultPFM_EV_ID, createdBy, updatedBy, isActive)
+                                                    VALUES (?, ?, ?, 1)
+                                                `;
+                                                const params7 = [
+                                                    result6.insertId,  // ใช้ค่า ID จาก query6
+                                                    data.username, 
+                                                    data.username
+                                                ];
+
+                                                connection.query(query7, params7, (err, result7) => {
+                                                    if (err) return reject(`Result_ChanceRisk: ${err.message}`);
+
+                                                    const query8 = `
+                                                        INSERT INTO Result_EffectRisk (ResultPFM_EV_ID, createdBy, updatedBy, isActive)
+                                                        VALUES (?, ?, ?, 1)
+                                                    `;
+                                                    const params8 = [
+                                                        result6.insertId,  // ใช้ค่า ID จาก query6
+                                                        data.username, 
+                                                        data.username
+                                                    ];
+
+                                                    connection.query(query8, params8, (err, result8) => {
+                                                        if (err) return reject(`Result_EffectRisk: ${err.message}`);
+
+                                                        resolve({ result3, result4, result5, result6, result7, result8 });
+                                                    });
+                                                });
                                             });
                                         });
                                     });
@@ -519,9 +549,9 @@ const fnUpdateResultQRSQL = (data) => {
             });
         });
     });
-  };
+};
 
-  const fnCheckFileDocPDFSQL = (record) => {
+  const fnCheckQRFileDocPDFSQL = (record) => {
     return new Promise((resolve, reject) => {
       const query = `
           SELECT b.id, b.fileName, b.fileData 
@@ -539,7 +569,7 @@ const fnUpdateResultQRSQL = (data) => {
     });
   };
   
-  const fnUpdateFileDocPDFSQL = (data) => {
+  const fnUpdateQRFileDocPDFSQL = (data) => {
     return new Promise((resolve, reject) => {
         if (!data || !data.fileName || !data.image || !data.username || !data.idQR) {
           return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
@@ -559,7 +589,7 @@ const fnUpdateResultQRSQL = (data) => {
     });
   };
   
-  const fnSetFileDocPDFSQL = (data) => {
+  const fnSetQRFileDocPDFSQL = (data) => {
     return new Promise((resolve, reject) => {
         pool.getConnection((err, connection) => {
             if (err) {
@@ -721,9 +751,9 @@ const fnInsertDataAssessorQRSQL = (data) => {
     fnInsertResultConQRSQL,
     fnUpdateStatusDocQRSQL,
     fnSetQuestionOtherSQL,
-    fnCheckFileDocPDFSQL,
-    fnUpdateFileDocPDFSQL,
-    fnSetFileDocPDFSQL,
+    fnCheckQRFileDocPDFSQL,
+    fnUpdateQRFileDocPDFSQL,
+    fnSetQRFileDocPDFSQL,
     fnUpdateDataSignatureQRSQL,
     fnInsertDataSignatureQRSQL,
     fnUpdateDataAssessorQRSQL,

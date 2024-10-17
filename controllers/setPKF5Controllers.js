@@ -149,10 +149,10 @@ const fnInsertFormPKF5Fix = async (req, res) => {
     }
     
     try {
-        console.log("/api/documents/fnInsertDataPKF5FixSQL");
+        console.log("/api/documents/fnInsertFormPKF5FixSQL");
 
         // เรียกใช้ฟังก์ชันเพื่อ insert ข้อมูล
-        var resultSetPKF5Fix = await fnInsertDataPKF5FixSQL(data);
+        var resultSetPKF5Fix = await fnInsertFormPKF5FixSQL(data);
         
         if (resultSetPKF5Fix) {
             // ถ้า insert ข้อมูลสำเร็จ ให้ลอง update สถานะเอกสาร

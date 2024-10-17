@@ -159,7 +159,6 @@ const fnProcessMainEndQR = async (fields) => {
         console.log('fnProcessMainEndQR')
         const resultEndQR = await fnGetResultEndQRSQL(fields);
         let resultEndQROld = { data: [] }; // กำหนดค่าเริ่มต้นเป็นอ็อบเจกต์ที่มี data เป็นอาร์เรย์ว่าง
-        console.log(resultEndQROld)
         if (resultEndQR && resultEndQR.length > 0) {
             resultEndQROld = {
                 data: resultEndQR.map(resSQL => ({

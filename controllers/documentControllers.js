@@ -25,6 +25,8 @@ const {
     fnGetResultPK5FixSQL,
     fnGetResultConPKF5SQL,
 
+    fnGetResultCollationSQL,
+
     fnUpdateCommentForAdminSQL,
     fnUpdateStatusDocAdminSQL
     
@@ -1001,6 +1003,46 @@ const fnGetResultCaseRisk = async (req, res) => {
     }
 };
 
+const fnGetResultCollation = async (req, res) => {
+    const { userId, sendId, year, status} = req.body;
+    
+    const data = {
+      userId,
+      sendId,
+      year,
+      status
+    };
+    
+    try {
+        console.log("/api/documents/fnGetResultCollation");
+        const resultCollation = await fnGetResultCollationSQL(data);
+
+        if (resultCollation === null) {
+            return res.status(200).json({ result: [] });
+        }
+        
+        if (resultCollation && resultCollation.length > 0) {
+            const result = resultCollation.map(resSQL => ({
+                id: resSQL.id,
+                fileName: resSQL.fileName,
+                fileData: resSQL.fileData,
+                sendName: resSQL.sendName,
+                receiveName: resSQL.receiveName,
+                statusID: resSQL.OPStatusID,
+                updatedAt: resSQL.updatedAt,
+                userDocID: resSQL.userDocID
+            }));
+            res.status(200).json({ result: result });
+        } else {
+        res.status(404).json({ 
+            message: "Data not found",
+        });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message, status: 'error' });
+    }
+};
+
 module.exports = {
     fnUpdateCommentForAdmin,
     fnGetResultDoc,
@@ -1022,5 +1064,7 @@ module.exports = {
     fnGetResultImprovePK4,
     fnGetResultPK5Fix,
     fnGetResultConPK5,
-    fnGetResultConPKF5
+    fnGetResultConPKF5,
+
+    fnGetResultCollation
 };
