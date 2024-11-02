@@ -14,6 +14,7 @@ const setPerformance = require("./routes/setPerformanceRoutes");
 const setPK4 = require("./routes/setPK4Routes");
 const setPK5 = require("./routes/setPK5Routes");
 const setPKF5 = require("./routes/setPKF5Routes");
+const setPKF6 = require("./routes/setPK6Routes");
 
 const app = express();
 
@@ -23,7 +24,7 @@ app.use(express.urlencoded({ extended: false }));
 app.set("view engine", "ejs");
 
 app.use("/api/auth", authRoutes);
-app.use("/api/documents", documentRoutes, setQuestion, setAssessment, setPerformance, setPK4, setPK5, setPKF5);
+app.use("/api/documents", documentRoutes, setQuestion, setAssessment, setPerformance, setPK4, setPK5, setPKF5, setPKF6);
 app.use("/api/user", userRoutes);
 app.use("/api/store", fileRoutes);
 

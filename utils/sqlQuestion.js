@@ -199,14 +199,14 @@ const fnUpdateResultQRSQL = (data) => {
   const fnUpdateResultOtherOPSubSQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.descResultEndQR || !data.username || !data.idEndQR) {
+        if (!data || !data.descResultOtherQR || !data.username || !data.idQR) {
           return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
             UPDATE OTHER_S_OP SET text = ?, updatedBy = ? 
             WHERE ResultDocID = ? AND ResultQRID = ?
         `;
-        const params = [data.descResultEndQR , data.username, parseInt(data.userDocId, 10), data.idQR];
+        const params = [data.descResultOtherQR , data.username, parseInt(data.userDocId, 10), data.idQR];
         pool.query(query, params, (err, result) => {
           if (err) {
               // ส่งข้อความข้อผิดพลาดที่ชัดเจน
@@ -221,14 +221,14 @@ const fnUpdateResultQRSQL = (data) => {
   const fnUpdateResultOPMSubSQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.descResultEndQR || !data.username || !data.userDocId || !data.idQR) {
+        if (!data || !data.descResultOtherQR || !data.username || !data.userDocId || !data.idQR) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
             UPDATE OPM SET OPM_Desc = ?, updatedBy = ? 
             WHERE ResultDocID = ? AND ResultQRID = ?
         `;
-        const params = [data.descResultEndQR, data.username, parseInt(data.userDocId, 10), data.idQR];
+        const params = [data.descResultOtherQR, data.username, parseInt(data.userDocId, 10), data.idQR];
   
         pool.query(query, params, (err, result) => {
             if (err) {
@@ -244,14 +244,14 @@ const fnUpdateResultQRSQL = (data) => {
   const fnUpdateResultPFM_EVSub = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.descResultEndQR || !data.username || !data.idQR) {
+        if (!data || !data.descResultOtherQR || !data.username || !data.idQR) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
             UPDATE Result_PFM_EV SET risking = ?, updatedBy = ? 
-            WHERE ResultDocID = ? AND ResultQRID = ?
+            WHERE ResultQRID = ?
         `;
-        const params = [data.descResultEndQR, data.username, parseInt(data.userDocId, 10), data.idQR];
+        const params = [data.descResultOtherQR, data.username, data.idQR];
   
         pool.query(query, params, (err, result) => {
             if (err) {

@@ -24,6 +24,10 @@ const {
 
     fnGetResultCollation,
 
+    fnGetResultDocPK6,
+    fnGetResultPK6,
+    fnGetResultConPK6,
+
     fnUpdateCommentForAdmin
 
 } = require("../controllers/documentControllers");
@@ -54,6 +58,10 @@ router.post("/fnGetResultConPK5", fnGetResultConPK5);
 router.post("/fnGetResultConPKF5", fnGetResultConPKF5);
 
 router.post("/fnGetResultCollation", fnGetResultCollation);
+
+router.post("/fnGetResultDocPK6", fnGetResultDocPK6);
+router.post("/fnGetResultPK6", fnGetResultPK6);
+router.post("/fnGetResultConPK6", fnGetResultConPK6);
 
 
 router.post("/fnUpdateCommentForAdmin", fnUpdateCommentForAdmin);

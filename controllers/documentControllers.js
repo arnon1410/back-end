@@ -26,6 +26,9 @@ const {
     fnGetResultConPKF5SQL,
 
     fnGetResultCollationSQL,
+    fnGetResultDocPK6SQL,
+    fnGetResultPK6SQL,
+    fnGetResultConPK6SQL,
 
     fnUpdateCommentForAdminSQL,
     fnUpdateStatusDocAdminSQL
@@ -1043,6 +1046,125 @@ const fnGetResultCollation = async (req, res) => {
     }
 };
 
+const fnGetResultDocPK6 = async (req, res) => {
+    const { unitId } = req.body;
+    
+    const data = { unitId };
+  
+    try {
+      console.log("/api/documents/fnGetResultDocPK6");
+      const resultDoc = await fnGetResultDocPK6SQL(data);
+      if (resultDoc === null) {
+          return res.status(200).json({ result: [] });
+      }
+      if (resultDoc && resultDoc.length > 0) {
+          const combinedData = resultDoc.map(resDoc => ({
+              id: resDoc.id,
+              userID: resDoc.UserID,
+              formID: resDoc.OPFormID,
+              statusID: resDoc.OPStatusID,
+              year: resDoc.year,
+              comment: resDoc.comment,
+              updatedAt: resDoc.updatedAt,
+              formName: resDoc.OPFormName,
+              receiveName: resDoc.receiveName,
+            }));
+          res.status(200).json({ result: combinedData });
+          
+      } else {
+        res.status(404).json({ 
+          message: "Data not found",
+        });
+      }
+    } catch (error) {
+      res.status(500).json({ error: error.message, status: 'error' });
+    }
+  };
+
+  const fnGetResultPK6 = async (req, res) => {
+    const { userId } = req.body;
+    
+    const data = {
+        userId
+    };
+    
+    if (!userId) {
+        res
+        .status(400)
+        .json({ error: "userId fields cannot be empty!" });
+        return;
+    }
+    
+    try {
+        console.log("/api/documents/fnGetResultPK6");
+        const resultPK6 = await fnGetResultPK6SQL(data);
+        
+        if (resultPK6 === null) {
+            return res.status(200).json({ result: [] });
+        }
+
+        if (resultPK6 && resultPK6.length > 0) {
+            const result = resultPK6.map(resSQL => ({
+                idPK6: resSQL.id,
+                descRisk: resSQL.descRisk,
+                descImprovements: resSQL.descImprovements,
+                detailsPK6: resSQL.detailsPK6,
+                UserID: resSQL.UserID
+            }));
+            res.status(200).json({ result: result });
+        } else {
+        res.status(404).json({
+            result: '',
+            message: "Data not found",
+        });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message, status: 'error' });
+    }
+};
+
+const fnGetResultConPK6 = async (req, res) => {
+    const { userId } = req.body;
+    
+    const data = {
+        userId    };
+    
+    if (!userId) {
+        res
+        .status(400)
+        .json({ error: "userId or sideId fields cannot be empty!" });
+        return;
+    }
+    
+    try {
+        console.log("/api/documents/fnGetResultConPK6");
+        const resultConPK6 = await fnGetResultConPK6SQL(data);
+
+        if (resultConPK6 === null) {
+            return res.status(200).json({ result: [] });
+        }
+
+        if (resultConPK6 && resultConPK6.length > 0) {
+            const result = resultConPK6.map(resSQL => ({
+                id: resSQL.id,
+                shortName: resSQL.shortName,
+                prefixAsessor: resSQL.prefixAsessor,
+                signPath: resSQL.signPath,
+                position: resSQL.position,
+                dateAsessor: resSQL.dateAsessor,
+                UserID: resSQL.UserID
+            }));
+            res.status(200).json({ result: result });
+        } else {
+        res.status(404).json({ 
+            message: "Data not found",
+        });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message, status: 'error' });
+    }
+};
+
 module.exports = {
     fnUpdateCommentForAdmin,
     fnGetResultDoc,
@@ -1066,5 +1188,8 @@ module.exports = {
     fnGetResultConPK5,
     fnGetResultConPKF5,
 
-    fnGetResultCollation
+    fnGetResultCollation,
+    fnGetResultDocPK6,
+    fnGetResultPK6,
+    fnGetResultConPK6
 };

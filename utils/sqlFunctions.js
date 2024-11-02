@@ -125,6 +125,7 @@ const fnGetResultQRSQL = (record) => {
       INNER JOIN Users as c ON b.UserID = c.id
       LEFT JOIN Result_File_QR as d ON a.id = d.ResultQRID
       WHERE c.id = ${record.userId} AND b.OPSideID = ${record.sideId} AND b.OPFormID = 2
+      AND a.OtherID IS NULL
       ${conditionSpecific}
       ORDER BY a.id
     `;
@@ -188,6 +189,7 @@ const fnGetResultEndQRSQL = (record) => {
       ORDER BY head_id
     `;
     pool.query(query, [record], (err, results) => {
+      console.log(query)
       if (err) {
         reject(err);
       } else {
@@ -273,7 +275,7 @@ const fnGetResultOtherOPSubSQL = (record) => {
       INNER JOIN OTHER_OP as d ON a.OtherID = d.id
       INNER JOIN Users as e ON b.UserID = e.id
       WHERE c.OtherID IS NOT NULL 
-      AND c.id = ? AND b.OPSideID = ?
+      AND e.id = ? AND b.OPSideID = ?
       ${conditionSpecific}
       ORDER BY a.id`;
     pool.query(query, [record.userId, record.sideId], (err, results) => {
@@ -668,6 +670,81 @@ const fnGetResultCollationSQL = (record) => {
   });
 };
 
+const fnGetResultDocPK6SQL = (record) => {
+  var conditionUnitName = ''
+  if (record.unitId) {
+    conditionUnitName = `AND b.id = ${record.unitId}`
+  }
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT
+        a.id,
+        a.year,
+        a.comment,
+        a.UserID,
+        a.OPStatusID,
+        a.OPFormID,
+        CAST(a.updatedAt AS CHAR) as updatedAt,
+        b.shortName as receiveName,
+        c.OPFormName,
+        d.OPStatusName
+      FROM Result_UserDoc as a
+      INNER JOIN Users as b ON a.UserID = b.id
+      INNER JOIN OP_Form as c ON a.OPFormID = c.id
+      INNER JOIN OP_Status as d ON a.OPStatusID = d.id
+      WHERE a.OPFormID = 8
+      ${conditionUnitName}
+      ORDER BY a.id;
+    `;
+    pool.query(query, [record], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results.length ? results : null);
+      }
+    });
+  });
+};
+
+const fnGetResultPK6SQL = (record) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+          SELECT a.id, a.descRisk, a.descImprovements, a.detailsPK6, b.UserID
+          FROM Result_PK6 as a
+          INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
+          INNER JOIN Users as c ON b.UserID = c.id
+          WHERE b.id = ${record.userId}
+          ORDER BY a.id
+    `;
+    pool.query(query, [record], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results.length ? results : null);
+      }
+    });
+  });
+};
+
+const fnGetResultConPK6SQL = (record) => {
+  return new Promise((resolve, reject) => {
+    const query = `SELECT a.id, a.prefixAsessor, a.signPath, a.position, CAST(a.dateAsessor AS CHAR) as dateAsessor, b.UserID, c.shortName
+      FROM Result_CON_PK6 as a 
+      INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
+      INNER JOIN Users as c ON b.UserID = c.id
+      WHERE c.id = ${record.userId}
+      ORDER BY a.id
+    `;
+    pool.query(query, [record], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results.length ? results : null);
+      }
+    });
+  });
+};
+
 
 const fnUpdateCommentForAdminSQL = (data) => {
   return new Promise((resolve, reject) => {
@@ -717,7 +794,7 @@ const fnCheckCollationFileDocPDFSQL = (record) => {
         WHERE id = '${record.collationId}'
     `;
     pool.query(query, [record], (err, results) => {
-      console.log(query)
+      
       if (err) {
         reject(err);
       } else {
@@ -810,6 +887,10 @@ module.exports = {
   fnGetUserControlSQL,
 
   fnGetResultCollationSQL,
+
+  fnGetResultDocPK6SQL,
+  fnGetResultPK6SQL,
+  fnGetResultConPK6SQL,
 
   fnCheckCollationFileDocPDFSQL,
   fnUpdateCollationFileDocPDFSQL,
