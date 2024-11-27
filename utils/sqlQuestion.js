@@ -9,9 +9,9 @@ const fnUpdateResultQRSQL = (data) => {
           return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
-            UPDATE Result_QR SET checkbox = ?, descResultQR = ?, updatedBy = ? WHERE id = ?
+            UPDATE Result_QR SET checkbox = ?, descRiskQR = ?, descImproveQR = ?, updatedBy = ? WHERE id = ?
         `;
-        const params = [data.checkbox , data.descResultQR , data.username, data.idQR];
+        const params = [data.checkbox , data.descRiskQR , data.descImproveQR, data.username, data.idQR];
         pool.query(query, params, (err, result) => {
           if (err) {
               // ส่งข้อความข้อผิดพลาดที่ชัดเจน
@@ -26,14 +26,14 @@ const fnUpdateResultQRSQL = (data) => {
   const fnUpdateResultOPMSQL = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.headName || !data.objName || !data.descResultQR || !data.username || !data.userDocId || !data.idQR) {
+        if (!data || !data.headName || !data.objName || !data.descRiskQR || !data.username || !data.userDocId || !data.idQR) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
-            UPDATE OPM SET OPM_Name = ?, OPM_Objective = ?, OPM_Desc = ?, updatedBy = ? 
+            UPDATE OPM SET OPM_Name = ?, OPM_Objective = ?, OPM_Risk = ?, OPM_Improve = ?, updatedBy = ? 
             WHERE ResultDocID = ? AND ResultQRID = ?
         `;
-        const params = [data.headName, data.objName, data.descResultQR, data.username, data.userDocId, data.idQR];
+        const params = [data.headName, data.objName, data.descRiskQR, data.descImproveQR, data.username, data.userDocId, data.idQR];
   
         pool.query(query, params, (err, result) => {
             if (err) {
@@ -49,14 +49,14 @@ const fnUpdateResultQRSQL = (data) => {
   const fnUpdateResultPFM_EV = (data) => {
     return new Promise((resolve, reject) => {
         // ตรวจสอบว่า data มีค่าที่ต้องการ
-        if (!data || !data.headName || !data.objName || !data.descResultQR || !data.username || !data.userDocId || !data.idQR) {
+        if (!data || !data.headName || !data.objName || !data.descRiskQR || !data.username || !data.userDocId || !data.idQR) {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
-            UPDATE Result_PFM_EV SET headRisk = ?, objRisk = ?, risking = ?, updatedBy = ? 
+            UPDATE Result_PFM_EV SET headRisk = ?, objRisk = ?, risking = ?, improvementControl = ?, updatedBy = ? 
             WHERE ResultDocID = ? AND ResultQRID = ?
         `;
-        const params = [data.headName, data.objName, data.descResultQR, data.username, data.userDocId, data.idQR];
+        const params = [data.headName, data.objName, data.descRiskQR, data.descImproveQR, data.username, data.userDocId, data.idQR];
   
         pool.query(query, params, (err, result) => {
             if (err) {
@@ -72,15 +72,16 @@ const fnUpdateResultQRSQL = (data) => {
   const fnSetResultRiskSQL = (data) => {
     return new Promise((resolve, reject) => {
         const queryOPM = `
-            INSERT INTO OPM (ResultDocID, ResultQRID, OPM_Name, OPM_Objective, OPM_Desc, createdBy, updatedBy, isActive)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+            INSERT INTO OPM (ResultDocID, ResultQRID, OPM_Name, OPM_Objective, OPM_Risk, OPM_Improve, createdBy, updatedBy, isActive)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
         `;
         const paramsOPM = [
             parseInt(data.userDocId, 10),
             parseInt(data.idQR, 10),
             data.headName,
             data.objName,
-            data.descResultQR,
+            data.descRiskQR,
+            data.descImproveQR,
             data.username,
             data.username
 
@@ -111,15 +112,16 @@ const fnUpdateResultQRSQL = (data) => {
                     const strOPM_ID = resultOPM.insertId; // เก็บค่า id ที่ได้จากการ insert ลง OPM
 
                     const queryPFM_EV = `
-                        INSERT INTO Result_PFM_EV (ResultQRID, OPM_ID, headRisk, objRisk, risking, createdBy, updatedBy, isActive)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+                        INSERT INTO Result_PFM_EV (ResultQRID, OPM_ID, headRisk, objRisk, risking, improvementControl, createdBy, updatedBy, isActive)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
                     `;
                     const paramsPFM_EV = [
                         parseInt(data.idQR, 10),
                         parseInt(strOPM_ID),  // ใช้ id จากการ insert ลง OPM
                         data.headName,
                         data.objName,
-                        data.descResultQR,
+                        data.descRiskQR,
+                        data.descImproveQR,
                         data.username,
                         data.username
                     ];
@@ -225,7 +227,7 @@ const fnUpdateResultQRSQL = (data) => {
             return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
         }
         const query = `
-            UPDATE OPM SET OPM_Desc = ?, updatedBy = ? 
+            UPDATE OPM SET OPM_Risk = ?, updatedBy = ? 
             WHERE ResultDocID = ? AND ResultQRID = ?
         `;
         const params = [data.descResultOtherQR, data.username, parseInt(data.userDocId, 10), data.idQR];
@@ -372,14 +374,13 @@ const fnUpdateResultQRSQL = (data) => {
                     console.log('Insert ID from query1:', strIdOther);
   
                     const query2 = `
-                        INSERT INTO Result_End_QR (ResultDocID, OtherID, head_id, radio, descResultEndQR, createdBy, updatedBy, isActive)
-                        VALUES (?, ?, ?, '0', ?, ?, ?, 1)
+                        INSERT INTO Result_End_QR (ResultDocID, OtherID, head_id, radio, createdBy, updatedBy, isActive)
+                        VALUES (?, ?, ?, '0', ?, ?, 1)
                     `;
                     const params2 = [
                         parseInt(data.userDocId, 10), 
                         parseInt(strIdOther, 10), 
                         parseInt(data.headId, 10), 
-                        data.descEndQR, 
                         data.username, 
                         data.username
                     ];
@@ -396,8 +397,8 @@ const fnUpdateResultQRSQL = (data) => {
                         const insertRows = (paramsSet) => {
                             return new Promise((resolve, reject) => {
                                 const query3 = `
-                                    INSERT INTO Result_QR (ResultDocID, OtherID, checkbox, descResultQR, createdBy, updatedBy, isActive, resultNo)
-                                    VALUES (?, ?, 'n', ?, ?, ?, 1, ?)
+                                    INSERT INTO Result_QR (ResultDocID, OtherID, checkbox, descRiskQR, descImproveQR, createdBy, updatedBy, isActive, resultNo)
+                                    VALUES (?, ?, 'n', ?, ?, ?, ?, 1, ?)
                                 `;
                                 const params3 = [
                                     parseInt(paramsSet.params3[0], 10), 
@@ -405,7 +406,9 @@ const fnUpdateResultQRSQL = (data) => {
                                     paramsSet.params3[1], 
                                     paramsSet.params3[2], 
                                     paramsSet.params3[3], 
-                                    paramsSet.params3[4]
+                                    paramsSet.params3[4],
+                                    paramsSet.params3[5],
+
                                 ];
   
                                 connection.query(query3, params3, (err, result3) => {
@@ -430,8 +433,8 @@ const fnUpdateResultQRSQL = (data) => {
                                         if (err) return reject(`OTHER_S_OP: ${err.message}`);
   
                                         const query5 = `
-                                            INSERT INTO OPM (ResultDocID, ResultQRID, OPM_Name, OPM_Objective, OPM_Desc, createdBy, updatedBy, isActive)
-                                            VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+                                            INSERT INTO OPM (ResultDocID, ResultQRID, OPM_Name, OPM_Objective, OPM_Risk, OPM_Improve, createdBy, updatedBy, isActive)
+                                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
                                         `;
                                         const params5 = [
                                             parseInt(paramsSet.params5[0], 10), 
@@ -440,7 +443,8 @@ const fnUpdateResultQRSQL = (data) => {
                                             paramsSet.params5[2], 
                                             paramsSet.params5[3], 
                                             paramsSet.params5[4], 
-                                            paramsSet.params5[5]
+                                            paramsSet.params5[5],
+                                            paramsSet.params5[6]
                                         ];
   
                                         connection.query(query5, params5, (err, result5) => {
@@ -449,8 +453,8 @@ const fnUpdateResultQRSQL = (data) => {
                                             const strIdOPM = result5.insertId;
   
                                             const query6 = `
-                                                INSERT INTO Result_PFM_EV (ResultQRID, OPM_ID, headRisk, objRisk, risking, createdBy, updatedBy, isActive)
-                                                VALUES (?, ?, ?, ?, ?, ?, ? ,1)
+                                                INSERT INTO Result_PFM_EV (ResultQRID, OPM_ID, headRisk, objRisk, risking, improvementControl, createdBy, updatedBy, isActive)
+                                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
                                             `;
                                             const params6 = [
                                                 parseInt(strIdQR, 10), 
@@ -459,7 +463,8 @@ const fnUpdateResultQRSQL = (data) => {
                                                 paramsSet.params6[2], 
                                                 paramsSet.params6[3], 
                                                 paramsSet.params6[4], 
-                                                paramsSet.params6[5]
+                                                paramsSet.params6[5],
+                                                paramsSet.params6[6]
                                             ];
   
                                             connection.query(query6, params6, (err, result6) => {
@@ -503,20 +508,20 @@ const fnUpdateResultQRSQL = (data) => {
                         };
   
                         const paramsSet1 = {
-                            params3: [data.userDocId, data.descSub, data.username, data.username, data.idControlSub],
-                            params4: [data.userDocId, data.descSub, data.username, data.username],
-                            params5: [data.userDocId, data.headText, data.objectName, data.descSub, data.username, data.username],
-                            params6: [data.userDocId, data.headText, data.objectName, data.descSub, data.username, data.username]
+                            params3: [data.userDocId, data.descRisking, data.descImprove, data.username, data.username, data.idControlSub],
+                            params4: [data.userDocId, data.descRisking, data.username, data.username],
+                            params5: [data.userDocId, data.headText, data.objectName, data.descRisking, data.descImprove, data.username, data.username],
+                            params6: [data.userDocId, data.headText, data.objectName, data.descRisking, data.descImprove, data.username, data.username]
                         };
   
                         insertRows(paramsSet1)
                             .then(() => {
-                                if (data.idControlSub2 && data.subText2 && data.descSub2) {
+                                if (data.idControlSub2 && data.subText2 && data.descRisking2) {
                                     const paramsSet2 = {
-                                        params3: [data.userDocId, data.descSub2, data.username, data.username, data.idControlSub2],
-                                        params4: [data.userDocId, data.descSub2, data.username, data.username],
-                                        params5: [data.userDocId, data.headText, data.objectName, data.descSub2, data.username, data.username],
-                                        params6: [data.userDocId, data.headText, data.objectName, data.descSub2, data.username, data.username]
+                                        params3: [data.userDocId, data.descRisking2, data.username, data.username, data.idControlSub2],
+                                        params4: [data.userDocId, data.descRisking2, data.username, data.username],
+                                        params5: [data.userDocId, data.headText, data.objectName, data.descRisking2, data.username, data.username],
+                                        params6: [data.userDocId, data.headText, data.objectName, data.descRisking2, data.username, data.username]
                                     };
                                     
                                     return insertRows(paramsSet2);

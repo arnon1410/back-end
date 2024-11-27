@@ -119,7 +119,7 @@ const fnGetResultQRSQL = (record) => {
     conditionSpecific = `AND a.id = ${record.idQR}`
   }
   return new Promise((resolve, reject) => {
-    const query = `SELECT a.id , a.checkbox, a.descResultQR, a.resultNo, b.UserID, d.fileName
+    const query = `SELECT a.id , a.checkbox, a.descRiskQR, a.descImproveQR, a.resultNo, b.UserID, d.fileName
       FROM Result_QR as a 
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
       INNER JOIN Users as c ON b.UserID = c.id
@@ -141,7 +141,7 @@ const fnGetResultQRSQL = (record) => {
 
 const fnGetResultOPMSQL = (record) => {
   return new Promise((resolve, reject) => {
-    const query = `SELECT id ,OPM_Name, OPM_Objective, OPM_Desc FROM OPM 
+    const query = `SELECT id ,OPM_Name, OPM_Objective, OPM_Risk, OPM_Improve FROM OPM 
       WHERE ResultDocID = ? 
       AND ResultQRID = ? 
       AND isActive = 1
@@ -189,7 +189,6 @@ const fnGetResultEndQRSQL = (record) => {
       ORDER BY head_id
     `;
     pool.query(query, [record], (err, results) => {
-      console.log(query)
       if (err) {
         reject(err);
       } else {
@@ -268,7 +267,7 @@ const fnGetResultOtherOPSubSQL = (record) => {
     conditionSpecific = `AND a.ResultQRID = ${record.idQR}`
   }
   return new Promise((resolve, reject) => {
-    const query = `SELECT c.id , c.resultNo, a.text, 0 as is_subcontrol, 1 as ischeckbox, c.checkbox, c.descResultQR
+    const query = `SELECT a.text, c.id , c.resultNo, 0 as is_subcontrol, 1 as ischeckbox, c.checkbox , c.descRiskQR, c.descImproveQR
       FROM OTHER_S_OP as a
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
       INNER JOIN Result_QR as c ON a.ResultQRID = c.id
@@ -612,10 +611,10 @@ const fnGetUserControlSQL = (record) => {
   });
 };
 
-const fnGetResultCaseRiskSQL = (record) => {
+const fnGetResultCaseRiskAndImproveSQL = (record) => {
   return new Promise((resolve, reject) => {
     const query = `
-      SELECT a.id, a.OPM_Desc, b.UserID
+      SELECT a.id, a.OPM_Risk, a.OPM_Improve, b.UserID
       FROM OPM as a
       INNER JOIN Result_UserDoc as b ON a.ResultDocID = b.id
       INNER JOIN Users as c ON b.UserID = c.id
@@ -745,6 +744,110 @@ const fnGetResultConPK6SQL = (record) => {
   });
 };
 
+const fnGetResultStatusDocUserSQL = (record) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+      WITH RankedStatus AS (
+        SELECT 
+              a.UserID,
+              a.OPSideID,
+              a.OPStatusID,
+              ROW_NUMBER() OVER(PARTITION BY a.OPSideID ORDER BY a.OPStatusID DESC) AS rank_status
+          FROM 
+              Result_UserDoc AS a
+          INNER JOIN 
+              Users AS b ON a.UserID = b.id
+          WHERE 
+              a.OPStatusID IN (1, 2, 3, 4)
+              and a.UserID BETWEEN 2 AND 43
+              and a.OPSideID BETWEEN 2 AND 11
+              and a.UserID = ${record.userId}
+              order by a.UserID
+      )
+      SELECT 
+        UserID,
+        COUNT(CASE WHEN OPStatusID = 1 THEN 1 END) AS notprocess,
+        COUNT(CASE WHEN OPStatusID = 2 THEN 1 END) AS process,
+        COUNT(CASE WHEN OPStatusID = 3 THEN 1 END) AS incomplete,
+        COUNT(CASE WHEN OPStatusID = 4 THEN 1 END) AS success
+      FROM 
+          RankedStatus
+      WHERE 
+          rank_status = 1
+      GROUP BY 
+          UserID;
+    `;
+    pool.query(query, [record], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results.length ? results : null);
+      }
+    });
+  });
+};
+
+const fnGetResultStatusDocAdminSQL = (record) => {
+  var conditionSide = '';
+  if (record.username === 'AdIconigd') { // จร.ทร 
+    conditionSide = 'AND a.OPSideID BETWEEN 2 AND 8';
+  } else if (record.username === 'AdIconiao') { // สตน.ทร
+    conditionSide = 'AND a.OPSideID BETWEEN 9 AND 11';
+  } else {
+    conditionSide = 'AND a.OPSideID BETWEEN 2 AND 11';
+  }
+
+  return new Promise((resolve, reject) => {
+    const query = `
+      WITH StatusCheck AS (
+        SELECT 
+          a.UserID,
+          a.OPSideID,
+          MAX(a.OPStatusID) AS OPStatusID
+        FROM 
+          Result_UserDoc AS a
+        INNER JOIN 
+          Users AS b ON a.UserID = b.id
+        WHERE 
+          a.OPStatusID IN (1, 2, 3, 4)
+          AND a.UserID BETWEEN 2 AND 43
+          ${conditionSide}
+        GROUP BY 
+          a.UserID, a.OPSideID  
+      )
+      
+      SELECT 
+        SUM(CASE WHEN \`condition\` = 'notprocess' THEN 1 ELSE 0 END) AS notprocess,
+        SUM(CASE WHEN \`condition\` = 'process' THEN 1 ELSE 0 END) AS process,
+        SUM(CASE WHEN \`condition\` = 'incomplete' THEN 1 ELSE 0 END) AS incomplete,
+        SUM(CASE WHEN \`condition\` = 'success' THEN 1 ELSE 0 END) AS success
+      FROM (
+        SELECT 
+          UserID,
+          CASE
+            WHEN COUNT(CASE WHEN OPStatusID = 1 THEN 1 END) = COUNT(*) THEN 'notprocess'
+            WHEN COUNT(CASE WHEN OPStatusID = 2 THEN 1 END) > 0 
+              AND COUNT(CASE WHEN OPStatusID = 1 THEN 1 END) > 0 THEN 'process'
+            WHEN COUNT(CASE WHEN OPStatusID = 3 THEN 1 END) > 0 THEN 'incomplete'
+            WHEN COUNT(CASE WHEN OPStatusID = 4 THEN 1 END) = COUNT(*) THEN 'success'
+            ELSE NULL
+          END AS \`condition\`
+        FROM 
+          StatusCheck
+        GROUP BY 
+          UserID
+      ) AS Conditions;
+    `;
+
+    pool.query(query, (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results.length ? results : null);
+      }
+    });
+  });
+};
 
 const fnUpdateCommentForAdminSQL = (data) => {
   return new Promise((resolve, reject) => {
@@ -835,7 +938,6 @@ const fnUpdateStatusDocCollationSQL = (data) => {
       `;
       const params = [data.username, data.userDocId];
       pool.query(query, params, (err, result) => {
-        console.log(query)
         if (err) {
             // ส่งข้อความข้อผิดพลาดที่ชัดเจน
             reject(new Error(`เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล: ${err.message}`));
@@ -871,7 +973,7 @@ module.exports = {
 
   fnGetResultASMSQL,
   fnGetResultConASMSQL,
-  fnGetResultCaseRiskSQL,
+  fnGetResultCaseRiskAndImproveSQL,
 
   fnGetResultPFMEVSQL,
   fnGetResultConPFMEVSQL,
@@ -891,6 +993,9 @@ module.exports = {
   fnGetResultDocPK6SQL,
   fnGetResultPK6SQL,
   fnGetResultConPK6SQL,
+
+  fnGetResultStatusDocUserSQL,
+  fnGetResultStatusDocAdminSQL,
 
   fnCheckCollationFileDocPDFSQL,
   fnUpdateCollationFileDocPDFSQL,

@@ -50,13 +50,17 @@ const pool = mysql.createPool(config);
 
   const fnUpdateFormPerformanceSQL = (data) => {
     return new Promise((resolve, reject) => {
-      if (!data || !data.activityControl || !data.improvementControl || !data.username || !data.idPFM || !data.idQR) {
+      if (!data || !data.activityControl || !data.username || !data.idPFM || !data.idQR) {
         return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
       }
+        // const query = `
+        //   UPDATE Result_PFM_EV SET activityControl = ?, improvementControl= ?, updatedBy = ? WHERE id = ? AND ResultQRID = ? 
+        // `;
+        // const params = [data.activityControl, data.improvementControl, data.username, data.idPFM, data.idQR];
         const query = `
-          UPDATE Result_PFM_EV SET activityControl = ?, improvementControl= ?, updatedBy = ? WHERE id = ? AND ResultQRID = ? 
+            UPDATE Result_PFM_EV SET activityControl = ?, updatedBy = ? WHERE id = ? AND ResultQRID = ? 
         `;
-        const params = [data.activityControl, data.improvementControl, data.username, data.idPFM, data.idQR];
+        const params = [data.activityControl, data.username, data.idPFM, data.idQR];
         pool.query(query, params, (err, result) => {
           if (err) {
               // ส่งข้อความข้อผิดพลาดที่ชัดเจน
@@ -172,21 +176,26 @@ const pool = mysql.createPool(config);
         }
 
         const activityControl = data.activityControl !== undefined && data.activityControl !== "" ? data.activityControl : null;
-        const improvementControl = data.improvementControl !== undefined && data.improvementControl !== "" ? data.improvementControl : null;
+        // const improvementControl = data.improvementControl !== undefined && data.improvementControl !== "" ? data.improvementControl : null;
         let isActive =  '1'
         if (data.rankRiskScore < 10) {
             isActive =  '0'
         } 
         
+        // const query = `
+        //     UPDATE Result_High_Risk 
+        //     SET existingControl = ?, improvementControl = ?, isActive = ?, updatedBy = ?
+        //     WHERE ResultQRID = ?
+        // `;
         const query = `
             UPDATE Result_High_Risk 
-            SET existingControl = ?, improvementControl = ?, isActive = ?, updatedBy = ?
+            SET existingControl = ?, isActive = ?, updatedBy = ?
             WHERE ResultQRID = ?
         `;
         
         const params = [
             activityControl,
-            improvementControl,
+            // improvementControl,
             isActive,
             data.username,
             data.idQR

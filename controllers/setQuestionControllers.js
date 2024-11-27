@@ -100,7 +100,8 @@ const fnProcessMainQR = async (fields) => {
                 data: resultQR.map(resSQL => ({
                     idQR: resSQL.id,
                     checkboxOld: resSQL.checkbox,
-                    descResultQROld: resSQL.descResultQR
+                    descRiskQROld: resSQL.descRiskQR,
+                    descImproveQROld: resSQL.descImproveQR,
                 }))
             };
 
@@ -114,14 +115,16 @@ const fnProcessMainQR = async (fields) => {
                             idOPM: resSQL.id,
                             nameOld: resSQL.OPM_Name,
                             objectiveOld: resSQL.OPM_Objective,
-                            descOld: resSQL.OPM_Desc // แก้ไขเป็น OPM_Desc แทน descOld เพื่อให้ตรงกับโครงสร้างที่ต้องการ
+                            riskOld: resSQL.OPM_Risk, // แก้ไขเป็น OPM_Desc แทน riskOld เพื่อให้ตรงกับโครงสร้างที่ต้องการ
+                            improveOld: resSQL.OPM_Improve
                         }))
                     };
             
                     const isEqualOPM = 
                         resultOPMOld.data[0].nameOld === fields.headName &&
                         resultOPMOld.data[0].objectiveOld === fields.objName &&
-                        resultOPMOld.data[0].descOld === fields.descResultQR;
+                        resultOPMOld.data[0].riskOld === fields.descRiskQR &&
+                        resultOPMOld.data[0].improveOld === fields.descImproveQR;
                     if (!isEqualOPM) {
                         await fnUpdateResultOPMSQL(fields);
                         console.log('UpdateResultOPM : Success');
@@ -136,10 +139,11 @@ const fnProcessMainQR = async (fields) => {
                 }
             }
 
-            // ตรวจสอบว่าค่า checkboxOld เท่ากับ checkbox และ descResultQROld เท่ากับ descResultQR หรือไม่
+            // ตรวจสอบว่าค่า checkboxOld เท่ากับ checkbox และ descRiskQROld เท่ากับ descRiskQR หรือไม่
             const isEqualQR = 
             resultQROld.data[0].checkboxOld === fields.checkbox &&
-            resultQROld.data[0].descResultQROld === fields.descResultQR;
+            resultQROld.data[0].descRiskQROld === fields.descRiskQR &&
+            resultQROld.data[0].descImproveQROld === fields.descImproveQR ;
 
             // ถ้าไม่เท่ากัน ให้คอลฟังก์ชัน fnUpdateResultQRSQL
             if (!isEqualQR) {
@@ -168,7 +172,7 @@ const fnProcessMainEndQR = async (fields) => {
                 }))
             };
 
-            // ตรวจสอบว่าค่า radioOld เท่ากับ radio และ descResultQROld เท่ากับ descResultQR หรือไม่
+            // ตรวจสอบว่าค่า radioOld เท่ากับ radio และ descRiskQROld เท่ากับ descRiskQR หรือไม่
             const isEqualQR = 
                 resultEndQROld.data[0].radioOld === fields.radio &&
                 resultEndQROld.data[0].descResultEndQROld === fields.descResultEndQR;
@@ -198,11 +202,11 @@ const fnProcessSubQR = async (fields) => {
             resultOtherOPOld = {
                 data: resultOtherOP.map(resSQL => ({
                     idQR: resSQL.id,
-                    descResultOtherOPOld: resSQL.descResultQR
+                    descResultOtherOPOld: resSQL.descRiskQR
                 }))
             };
 
-            // ตรวจสอบว่าค่า checkboxOld เท่ากับ checkbox และ descResultQROld เท่ากับ descResultQR หรือไม่
+            // ตรวจสอบว่าค่า checkboxOld เท่ากับ checkbox และ descRiskQROld เท่ากับ descRiskQR หรือไม่
             const isEqualQR = resultOtherOPOld.data[0].descResultOtherOPOld === fields.descResultEndQR;
 
             // ถ้าไม่เท่ากัน ให้คอลฟังก์ชัน fnUpdateResultQRSQL
@@ -247,7 +251,7 @@ const fnProcessConQR = async (fields) => {
 };
 
 const fnSetQuestionOther = async (req, res) => {  
-    const { userId, userDocId, sideId, username, idControlHead, idControlSub, idControlSub2, headId, headText, subText, subText2, objectName, descSub, descSub2, descEndQR } = req.body;
+    const { userId, userDocId, sideId, username, idControlHead, idControlSub, idControlSub2, headId, headText, subText, subText2, objectName, descRisking, descRisking2, descImprove } = req.body;
 
     const data = {
         userId,
@@ -256,19 +260,19 @@ const fnSetQuestionOther = async (req, res) => {
         username,
         idControlHead,
         idControlSub,
-        idControlSub2,
+        // idControlSub2,
         headId,
         headText,
         subText,
-        subText2,
+        // subText2,
         objectName,
-        descSub,
-        descSub2,
-        descEndQR
+        descRisking,
+        // descRisking2,
+        descImprove
     };
 
   
-    if (!userId || !userDocId || !sideId || !username || !idControlHead || !idControlSub || !headId || !headText || !subText || !objectName || !descSub || !descEndQR) {
+    if (!userId || !userDocId || !sideId || !username || !idControlHead || !idControlSub || !headId || !headText || !subText || !objectName || !descRisking || !descImprove) {
         return res.status(400).json({ error: "some fields cannot be empty!" });
     }
     try {

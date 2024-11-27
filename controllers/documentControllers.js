@@ -11,7 +11,7 @@ const {
 
     fnGetResultASMSQL, 
     fnGetResultConASMSQL,
-    fnGetResultCaseRiskSQL,
+    fnGetResultCaseRiskAndImproveSQL,
 
     fnGetResultPFMEVSQL,
     fnGetResultConPFMEVSQL,
@@ -29,6 +29,9 @@ const {
     fnGetResultDocPK6SQL,
     fnGetResultPK6SQL,
     fnGetResultConPK6SQL,
+
+    fnGetResultStatusDocUserSQL,
+    fnGetResultStatusDocAdminSQL,
 
     fnUpdateCommentForAdminSQL,
     fnUpdateStatusDocAdminSQL
@@ -201,7 +204,6 @@ const fnGetResultQR = async (req, res) => {
   
     try {
     console.log("/api/documents/fnGetResultQR");
-    console.log(data)
       const resultQR = await fnGetResultQRSQL(data);
         if (resultQR === null) {
             return res.status(200).json({ result: [] });
@@ -214,7 +216,8 @@ const fnGetResultQR = async (req, res) => {
               fileName: resSQL.fileName,
               fileSave: resSQL.fileSave,
               filePath: resSQL.filePath,
-              descResultQR: resSQL.descResultQR,
+              descRiskQR: resSQL.descRiskQR,
+              descImproveQR: resSQL.descImproveQR,
               UserID: resSQL.UserID,
               description: resSQL.resultNo
             }));
@@ -276,22 +279,17 @@ const fnGetResultOtherQR = async (req, res) => {
     const { userId, sideId } = req.body;
 
     if (!userId || !sideId) {
-        res
-        .status(400)
-        .json({ error: "userId or sideId fields cannot be empty!" });
+        res.status(400).json({ error: "userId or sideId fields cannot be empty!" });
         return;
     }
 
-    const data = {
-        userId,
-        sideId
-    };
+    const data = { userId, sideId };
 
-    const dataFix = [
-        { id: 101 , sum_id: 401, value:  '', text: "การบริการ สวัสดิการ และสิทธิกำลังพล" },
-        { id: 102 , sum_id: 402, value: '1', text: "มีการควบคุมเพียงพอ"},
-        { id: 103 , sum_id: 403, value: '0', text: "กรณีไม่เพียงพอมีแนวทางหรือวิธีการปรับปรุงการควบคุมภายในให้ดีขึ้น ดังนี้"}
-    ]
+    const dataEndFix = [
+        { id: 10001, sum_id: 10001, value: '', text: "การบริการ สวัสดิการ และสิทธิกำลังพล" },
+        { id: 10002, sum_id: 10002, value: '1', text: "มีการควบคุมเพียงพอ" },
+        { id: 10003, sum_id: 10003, value: '0', text: "กรณีไม่เพียงพอมีแนวทางหรือวิธีการปรับปรุงการควบคุมภายในให้ดีขึ้น ดังนี้" }
+    ];
 
     try {
         console.log("/api/documents/fnGetResultOtherQR");
@@ -301,7 +299,7 @@ const fnGetResultOtherQR = async (req, res) => {
         if (resultOtherOP === null) {
             return res.status(200).json({ result: [] });
         }
-        
+
         if (resultOtherOP && resultOtherOP.length > 0) {
             const resultMain = resultOtherOP.map(resSQL => ({
                 id: resSQL.id, // from table Result QR
@@ -309,7 +307,7 @@ const fnGetResultOtherQR = async (req, res) => {
                 head_id: resSQL.head_id,
                 mainControl_id: resSQL.mainControl_id,
                 text: resSQL.text,
-                objectName:resSQL.objectName,
+                objectName: resSQL.objectName,
                 main_Obj: resSQL.main_Obj,
                 UserID: resSQL.UserID
             }));
@@ -328,19 +326,29 @@ const fnGetResultOtherQR = async (req, res) => {
                     text: resSQL.text,
                     is_subcontrol: resSQL.is_subcontrol,
                     ischeckbox: resSQL.ischeckbox,
-                    descResultQR: resSQL.descResultQR,
+                    descRiskQR: resSQL.descRiskQR,
+                    descImproveQR: resSQL.descImproveQR,
                     UserID: resSQL.UserID
                 }));
 
-                const result = resultMain.concat(resultSub, dataFix);
+                // Update dataImproveFix with resultSub values
+                const dataImproveFix = resultSub.map(sub => ({
+                    id: 10001,
+                    risk_id: sub.id,
+                    risking: sub.descRiskQR,
+                    improve: sub.descImproveQR,
+                    is_improvement: 1
+                }));
+
+                const result = resultMain.concat(resultSub, dataEndFix, dataImproveFix);
                 res.status(200).json({ result: result });
             } else {
                 res.status(200).json({ result: resultMain });
             }
         } else {
-        res.status(404).json({ 
-            message: "Data not found",
-        });
+            res.status(404).json({
+                message: "Data not found",
+            });
         }
     } catch (error) {
         res.status(500).json({ error: error.message, status: 'error' });
@@ -966,7 +974,7 @@ const fnGetResultConPKF5 = async (req, res) => {
     }
 };
 
-const fnGetResultCaseRisk = async (req, res) => {
+const fnGetResultCaseRiskAndImprove = async (req, res) => {
     const { userId, sideId } = req.body;
     
     const data = {
@@ -982,17 +990,18 @@ const fnGetResultCaseRisk = async (req, res) => {
     }
     
     try {
-        console.log("/api/documents/fnGetResultCaseRisk");
-        const resultCaseRisk = await fnGetResultCaseRiskSQL(data);
+        console.log("/api/documents/fnGetResultCaseRiskAndImprove");
+        const resultCaseRiskAndImprove = await fnGetResultCaseRiskAndImproveSQL(data);
 
-        if (resultCaseRisk === null) {
+        if (resultCaseRiskAndImprove === null) {
             return res.status(200).json({ result: [] });
         }
         
-        if (resultCaseRisk && resultCaseRisk.length > 0) {
-            const result = resultCaseRisk.map(resSQL => ({
+        if (resultCaseRiskAndImprove && resultCaseRiskAndImprove.length > 0) {
+            const result = resultCaseRiskAndImprove.map(resSQL => ({
                 id: resSQL.id,
-                OPM_Desc: resSQL.OPM_Desc,
+                risking: resSQL.OPM_Risk,
+                improve:resSQL.OPM_Improve,
                 UserID: resSQL.UserID
             }));
             res.status(200).json({ result: result });
@@ -1132,7 +1141,7 @@ const fnGetResultConPK6 = async (req, res) => {
     if (!userId) {
         res
         .status(400)
-        .json({ error: "userId or sideId fields cannot be empty!" });
+        .json({ error: "userId fields cannot be empty!" });
         return;
     }
     
@@ -1165,6 +1174,87 @@ const fnGetResultConPK6 = async (req, res) => {
     }
 };
 
+const fnGetResultStatusDocUser = async (req, res) => {
+    const { userId } = req.body;
+    
+    const data = {
+        userId    };
+    
+    if (!userId) {
+        res
+        .status(400)
+        .json({ error: "userId fields cannot be empty!" });
+        return;
+    }
+    
+    try {
+        console.log("/api/documents/fnGetResultStatusDocUser");
+        const resultStatusDoc = await fnGetResultStatusDocUserSQL(data);
+
+        if (resultStatusDoc === null) {
+            return res.status(200).json({ result: [] });
+        }
+
+        if (resultStatusDoc && resultStatusDoc.length > 0) {
+            const result = resultStatusDoc.map(resSQL => ({
+                notprocess: resSQL.notprocess,
+                process: resSQL.process,
+                incomplete: resSQL.incomplete,
+                success: resSQL.success,
+                UserID: resSQL.UserID
+            }));
+            res.status(200).json({ result: result });
+        } else {
+        res.status(404).json({ 
+            message: "Data not found",
+        });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message, status: 'error' });
+    }
+};
+
+const fnGetResultStatusDocAdmin = async (req, res) => {
+    const { userId , username } = req.body;
+    
+    const data = {
+        userId,
+        username    
+    };
+    
+    if (!userId || !username) {
+        res
+        .status(400)
+        .json({ error: "userId or username fields cannot be empty!" });
+        return;
+    }
+    
+    try {
+        console.log("/api/documents/fnGetResultStatusDocAdmin");
+        const resultStatusDoc = await fnGetResultStatusDocAdminSQL(data);
+
+        if (resultStatusDoc === null) {
+            return res.status(200).json({ result: [] });
+        }
+
+        if (resultStatusDoc && resultStatusDoc.length > 0) {
+            const result = resultStatusDoc.map(resSQL => ({
+                notprocess: resSQL.notprocess,
+                process: resSQL.process,
+                incomplete: resSQL.incomplete,
+                success: resSQL.success
+            }));
+            res.status(200).json({ result: result });
+        } else {
+        res.status(404).json({ 
+            message: "Data not found",
+        });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message, status: 'error' });
+    }
+};
+
 module.exports = {
     fnUpdateCommentForAdmin,
     fnGetResultDoc,
@@ -1175,7 +1265,7 @@ module.exports = {
     fnGetResultConQR,
     fnGetResultASM,
     fnGetResultConASM,
-    fnGetResultCaseRisk,
+    fnGetResultCaseRiskAndImprove,
     fnGetResultPFMEV,
     fnGetResultConPFMEV,
     fnGetResultChanceRisk,
@@ -1191,5 +1281,7 @@ module.exports = {
     fnGetResultCollation,
     fnGetResultDocPK6,
     fnGetResultPK6,
-    fnGetResultConPK6
+    fnGetResultConPK6,
+    fnGetResultStatusDocUser,
+    fnGetResultStatusDocAdmin
 };

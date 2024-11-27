@@ -20,13 +20,16 @@ const {
     fnGetResultPK5Fix,
     fnGetResultConPKF5,
 
-    fnGetResultCaseRisk,
+    fnGetResultCaseRiskAndImprove,
 
     fnGetResultCollation,
 
     fnGetResultDocPK6,
     fnGetResultPK6,
     fnGetResultConPK6,
+
+    fnGetResultStatusDocUser,
+    fnGetResultStatusDocAdmin,
 
     fnUpdateCommentForAdmin
 
@@ -43,7 +46,7 @@ router.post("/fnGetResultConQR", fnGetResultConQR);
 
 router.post("/fnGetResultASM", fnGetResultASM);
 router.post("/fnGetResultConASM", fnGetResultConASM);
-router.post("/fnGetResultCaseRisk", fnGetResultCaseRisk);
+router.post("/fnGetResultCaseRiskAndImprove", fnGetResultCaseRiskAndImprove);
 
 router.post("/fnGetResultPFMEV", fnGetResultPFMEV);
 router.post("/fnGetResultConPFMEV", fnGetResultConPFMEV);
@@ -63,6 +66,8 @@ router.post("/fnGetResultDocPK6", fnGetResultDocPK6);
 router.post("/fnGetResultPK6", fnGetResultPK6);
 router.post("/fnGetResultConPK6", fnGetResultConPK6);
 
+router.post("/fnGetResultStatusDocUser", fnGetResultStatusDocUser);
+router.post("/fnGetResultStatusDocAdmin", fnGetResultStatusDocAdmin);
 
 router.post("/fnUpdateCommentForAdmin", fnUpdateCommentForAdmin);
 
