@@ -54,9 +54,9 @@ const fnUpdateResultQRSQL = (data) => {
         }
         const query = `
             UPDATE Result_PFM_EV SET headRisk = ?, objRisk = ?, risking = ?, improvementControl = ?, updatedBy = ? 
-            WHERE ResultDocID = ? AND ResultQRID = ?
+            WHERE ResultQRID = ?
         `;
-        const params = [data.headName, data.objName, data.descRiskQR, data.descImproveQR, data.username, data.userDocId, data.idQR];
+        const params = [data.headName, data.objName, data.descRiskQR, data.descImproveQR, data.username, data.idQR];
   
         pool.query(query, params, (err, result) => {
             if (err) {
