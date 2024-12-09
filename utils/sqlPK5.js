@@ -4,18 +4,24 @@ const pool = mysql.createPool(config);
 
 const fnUpdateFormPK5SQL = (data) => {
     return new Promise((resolve, reject) => {
-      if (!data || !data.evaluationControl  || !data.existingRisk  || !data.responsibleAgency  || !data.username || !data.idPK5 || !data.userDocId) {
+      if (!data || !data.evaluationControl || !data.responsibleAgency  || !data.username || !data.idPK5 || !data.userDocId) {
         return reject(new Error('ข้อมูลที่จำเป็นไม่ครบถ้วน'));
       }
+        // const query = `
+        //     UPDATE Result_High_Risk 
+        //     SET evaluationControl = ?, existingRisk = ?, responsibleAgency = ?, updatedBy = ?
+        //     WHERE id = ?
+        // `;
+
         const query = `
-            UPDATE Result_High_Risk 
-            SET evaluationControl = ?, existingRisk = ?, responsibleAgency = ?, updatedBy = ?
-            WHERE id = ?
-        `;
+        UPDATE Result_High_Risk 
+        SET evaluationControl = ?, responsibleAgency = ?, updatedBy = ?
+        WHERE id = ?
+    `;
         
         const params = [
             data.evaluationControl,
-            data.existingRisk,
+            // data.existingRisk,
             data.responsibleAgency,
             data.username,
             data.idPK5

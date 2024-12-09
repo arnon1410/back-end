@@ -176,26 +176,21 @@ const pool = mysql.createPool(config);
         }
 
         const activityControl = data.activityControl !== undefined && data.activityControl !== "" ? data.activityControl : null;
-        // const improvementControl = data.improvementControl !== undefined && data.improvementControl !== "" ? data.improvementControl : null;
+        const improvementControl = data.improvementControl !== undefined && data.improvementControl !== "" ? data.improvementControl : null;
         let isActive =  '1'
         if (data.rankRiskScore < 10) {
             isActive =  '0'
         } 
         
-        // const query = `
-        //     UPDATE Result_High_Risk 
-        //     SET existingControl = ?, improvementControl = ?, isActive = ?, updatedBy = ?
-        //     WHERE ResultQRID = ?
-        // `;
         const query = `
             UPDATE Result_High_Risk 
-            SET existingControl = ?, isActive = ?, updatedBy = ?
+            SET existingControl = ?, improvementControl = ?, isActive = ?, updatedBy = ?
             WHERE ResultQRID = ?
         `;
         
         const params = [
             activityControl,
-            // improvementControl,
+            improvementControl,
             isActive,
             data.username,
             data.idQR
